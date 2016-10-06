@@ -560,11 +560,11 @@ class WebWeixin(object):
         return self._saveFile(fn, data, 'webwxgetvoice')
 
     def getGroupName(self, id):
-        name = '未知群'
+        name = u'未知群'
         for member in self.GroupList:
             if member['UserName'] == id:
                 name = member['NickName']
-        if name == '未知群':
+        if name == u'未知群':
             # 现有群里面查不到
             GroupList = self.getNameById(id)
             for group in GroupList:
