@@ -577,7 +577,7 @@ class WebWeixin(object):
         return name
 
     def getUserRemarkName(self, id):
-        name = '未知群' if id[:2] == '@@' else '陌生人'
+        name = u'未知群' if id[:2] == '@@' else u'陌生人'
         if id == self.User['UserName']:
             return self.User['NickName']  # 自己
 
@@ -608,7 +608,7 @@ class WebWeixin(object):
                     name = member['DisplayName'] if member[
                         'DisplayName'] else member['NickName']
 
-        if name == '未知群' or name == '陌生人':
+        if name == u'未知群' or name == u'陌生人':
             logging.debug(id)
         return name
 
@@ -626,13 +626,16 @@ class WebWeixin(object):
         content = None
 
         msg = message
-        logging.debug(msg)
+        logging.info(type(msg))
+        logging.info(msg)
 
         if msg['raw_msg']:
             srcName = self.getUserRemarkName(msg['raw_msg']['FromUserName'])
             dstName = self.getUserRemarkName(msg['raw_msg']['ToUserName'])
-            content = msg['raw_msg']['Content'].replace(
-                '&lt;', '<').replace('&gt;', '>')
+            content = msg['raw_msg']['Content']
+            
+            # content = msg['raw_msg']['Content'].replace(
+            # '&lt;', '<').replace('&gt;', '>')
             message_id = msg['raw_msg']['MsgId']
 
             if content.find('http://weixin.qq.com/cgi-bin/redirectforward?args=') != -1:
@@ -646,12 +649,12 @@ class WebWeixin(object):
                     if item.split('=')[0] == 'center':
                         loc = item.split('=')[-1:]
 
-                content = '%s 发送了一个 位置消息 - 我在 [%s](%s) @ %s]' % (
+                content = u'%s 发送了一个 位置消息 - 我在 [%s](%s) @ %s]' % (
                     srcName, pos, url, loc)
 
             if msg['raw_msg']['ToUserName'] == 'filehelper':
                 # 文件传输助手
-                dstName = '文件传输助手'
+                dstName = u'文件传输助手'
 
             if msg['raw_msg']['FromUserName'][:2] == '@@':
                 # 接收到来自群的消息
@@ -669,19 +672,19 @@ class WebWeixin(object):
                 dstName = 'GROUP'
 
             # 收到了红包
-            if content == '收到红包，请在手机上查看':
+            if content == u'收到红包，请在手机上查看':
                 msg['message'] = content
 
             # 指定了消息内容
             if 'message' in msg.keys():
                 content = msg['message']
-
+               
         if groupName != None:
-            print '%s |%s| %s -> %s: %s' % (message_id, groupName.strip(), srcName.strip(), dstName.strip(), content.replace('<br/>', '\n'))
-            logging.info('%s |%s| %s -> %s: %s' % (message_id, groupName.strip(),
-                                                   srcName.strip(), dstName.strip(), content.replace('<br/>', '\n')))
+            print '%s |%s| %s -> %s: %s' % (message_id, groupName.strip(), srcName.strip(), dstName.strip(), content)
+            logging.info('%s |%s| %s -> %s: %s' % (message_id, groupName.strip(),srcName.strip(), dstName.strip(), content))
         else:
-            print '%s %s -> %s: %s' % (message_id, srcName.strip(), dstName.strip(), content.replace('<br/>', '\n'))
+            print type(message_id), type(srcName), type(dstName), type(content)
+            print '%s %s -> %s: %s' % (message_id, srcName.strip(), dstName.strip(), content)
             logging.info('%s %s -> %s: %s' % (message_id, srcName.strip(),
                                               dstName.strip(), content.replace('<br/>', '\n')))
 
@@ -759,32 +762,32 @@ class WebWeixin(object):
                     'url': msg['Url'],
                     'appname': self._searchContent('appname', content, 'xml')
                 }
-                raw_msg = {'raw_msg': msg, 'message': '%s 分享了一个%s: %s' % (
+                raw_msg = {'raw_msg': msg, 'message': u'%s 分享了一个%s: %s' % (
                     name, appMsgType[msg['AppMsgType']], json.dumps(card))}
                 self._showMsg(raw_msg)
             elif msgType == 51:
-                raw_msg = {'raw_msg': msg, 'message': '[*] 成功获取联系人信息'}
+                raw_msg = {'raw_msg': msg, 'message': u'[*] 成功获取联系人信息'}
                 self._showMsg(raw_msg)
             elif msgType == 62:
                 video = self.webwxgetvideo(msgid)
                 raw_msg = {'raw_msg': msg,
-                           'message': '%s 发了一段小视频: %s' % (name, video)}
+                           'message': u'%s 发了一段小视频: %s' % (name, video)}
                 self._showMsg(raw_msg)
                 self._safe_open(video)
             elif msgType == 10002:
-                raw_msg = {'raw_msg': msg, 'message': '%s 撤回了一条消息' % name}
+                raw_msg = {'raw_msg': msg, 'message': u'%s 撤回了一条消息' % name}
                 self._showMsg(raw_msg)
             else:
-                logging.debug('[*] 该消息类型为: %d，可能是表情，图片, 链接或红包: %s' %
+                logging.debug(u'[*] 该消息类型为: %d，可能是表情，图片, 链接或红包: %s' %
                               (msg['MsgType'], json.dumps(msg)))
                 raw_msg = {
                     'raw_msg': msg, 'message': '[*] 该消息类型为: %d，可能是表情，图片, 链接或红包' % msg['MsgType']}
                 self._showMsg(raw_msg)
 
     def listenMsgMode(self):
-        print '[*] 进入消息监听模式 ... 成功'
-        logging.debug('[*] 进入消息监听模式 ... 成功')
-        self._run('[*] 进行同步线路测试 ... ', self.testsynccheck)
+        print u'[*] 进入消息监听模式 ... 成功'
+        logging.debug(u'[*] 进入消息监听模式 ... 成功')
+        self._run(u'[*] 进行同步线路测试 ... ', self.testsynccheck)
         playWeChat = 0
         redEnvelope = 0
         while True:
@@ -959,12 +962,12 @@ class WebWeixin(object):
     def _run(self, str, func, *args):
         self._echo(str)
         if func(*args):
-            print '成功'
-            logging.debug('%s... 成功' % (str))
+            print u'成功'
+            logging.debug(u'%s... 成功' % (str))
         else:
-            print('失败\n[*] 退出程序')
-            logging.debug('%s... 失败' % (str))
-            logging.debug('[*] 退出程序')
+            print(u'失败\n[*] 退出程序')
+            logging.debug(u'%s... 失败' % (str))
+            logging.debug(u'[*] 退出程序')
             exit()
 
     def _echo(self, str):
@@ -1052,7 +1055,7 @@ class WebWeixin(object):
                 return pm.group(1)
         return '未知'
 
-
+'''
 class UnicodeStreamFilter:
 
     def __init__(self, target):
@@ -1072,7 +1075,7 @@ class UnicodeStreamFilter:
 
 if sys.stdout.encoding == 'cp936':
     sys.stdout = UnicodeStreamFilter(sys.stdout)
-
+'''
 
 if __name__ == '__main__':
 
