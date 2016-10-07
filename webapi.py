@@ -71,14 +71,9 @@ class ManageApi():
         name = data['name']
         word = data['word']
         webwx.sendMsg(name, word)
-'''
 
-  '''  
 if __name__ == '__main__':
     
-    '''
-
-     '''
     
     webwx = WXLogin()
     webwx.login_module()
