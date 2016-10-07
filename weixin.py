@@ -683,7 +683,6 @@ class WebWeixin(object):
             print '%s |%s| %s -> %s: %s' % (message_id, groupName.strip(), srcName.strip(), dstName.strip(), content)
             logging.info('%s |%s| %s -> %s: %s' % (message_id, groupName.strip(),srcName.strip(), dstName.strip(), content))
         else:
-            print type(message_id), type(srcName), type(dstName), type(content)
             print '%s %s -> %s: %s' % (message_id, srcName.strip(), dstName.strip(), content)
             logging.info('%s %s -> %s: %s' % (message_id, srcName.strip(),
                                               dstName.strip(), content.replace('<br/>', '\n')))
@@ -811,6 +810,7 @@ class WebWeixin(object):
                         self.handleMsg(r)
                 elif selector == '6':
                     # TODO
+                    r = self.webwxsync() #一面消息老刷屏
                     redEnvelope += 1
                     print '[*] 收到疑似红包消息 %d 次' % redEnvelope
                     logging.debug('[*] 收到疑似红包消息 %d 次' % redEnvelope)

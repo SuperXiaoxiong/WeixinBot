@@ -54,7 +54,7 @@ class ManageApi():
              
         if not webwx.q.empty():
             data = webwx.q.get()
-            pprint(data)
+            print(json.dumps(data, indent=4, ensure_ascii=False))
             if data:
                 #data = json.dump(data)
                 return data
@@ -81,10 +81,8 @@ if __name__ == '__main__':
     listenProcess.start()
 
     num = CountNum()
-    print type(num)
+    
     
     app = web.application(urls,globals())
-    #session = web.session.Session(app, web.session.DiskStore('sessions'), initializer={'count': 0})
-    #session = web.session.Session(app, web.session.DiskStore('sessions'), initializer={'count': num})
     app.run()
-    
+    print '2'

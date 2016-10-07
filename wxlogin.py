@@ -144,25 +144,20 @@ class WXLogin(WebWeixin):
             
     
     def handleMsg(self, r):
-        self.q.put(r)
-        print 'qsize' + str(self.q.qsize())
+        
         for msg in r['AddMsgList']:
-            print '[*] 你有新的消息，请注意查收'
-            logging.debug('[*] 你有新的消息，请注意查收')
-
-            if self.DEBUG:
-                fn = 'msg' + str(int(random.random() * 1000)) + '.json'
-                with open(fn, 'w') as f:
-                    f.write(json.dumps(msg))
-                print '[*] 该消息已储存到文件: ' + fn
-                logging.debug('[*] 该消息已储存到文件: %s' % (fn))
-
+            
             msgType = msg['MsgType']
             name = self.getUserRemarkName(msg['FromUserName'])
             content = msg['Content']
             msgid = msg['MsgId']
 
+
             if msgType == 1:
+                print u'你有新的文本消息'
+                self.q.put(r)
+                print 'qsize' + str(self.q.qsize())
+    
                 raw_msg = {'raw_msg': msg}
                 self._showMsg(raw_msg)
                 if self.autoReplyMode:
@@ -188,11 +183,9 @@ class WXLogin(WebWeixin):
                 raw_msg = {'raw_msg': msg, 'message': u'%s 撤回了一条消息' % name}
                 self._showMsg(raw_msg)
             else:
-                logging.debug(u'[*] 该消息类型为: %d，可能是表情，图片, 链接或红包: %s' %
-                              (msg['MsgType'], json.dumps(msg)))
                 raw_msg = {
                     'raw_msg': msg, 'message': u'[*] 该消息类型为: %d，可能是表情，图片, 链接或红包' % msg['MsgType']}
-                self._showMsg(raw_msg)
+                #self._showMsg(raw_msg)
                 
                 
 if __name__ == '__main__':
