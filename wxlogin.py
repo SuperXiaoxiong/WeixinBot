@@ -90,75 +90,12 @@ class WXLogin(WebWeixin):
             return "让我一个人静静 T_T..."   
         
         
-    @catchKeyboardInterrupt
-    def start(self):
-        self._echo(u'[*] 微信网页版 ... 开动')
-        print
-        logging.debug(u'[*] 微信网页版 ... 开动')
-        while True:
-            self._run(u'[*] 正在获取 uuid ... ', self.getUUID)
-            self._echo(u'[*] 正在获取二维码 ... 成功')
-            print
-            logging.debug(u'[*] 微信网页版 ... 开动')
-            self.genQRCode()
-            print '[*] 请使用微信扫描二维码以登录 ... '
-            if not self.waitForLogin():
-                continue
-                print u'[*] 请在手机上点击确认以登录 ... '
-            if not self.waitForLogin(0):
-                continue
-            break
-
-        self._run(u'[*] 正在登录 ... ', self.login)
-        self._run(u'[*] 微信初始化 ... ', self.webwxinit)
-        self._run(u'[*] 开启状态通知 ... ', self.webwxstatusnotify)
-        self._run(u'[*] 获取联系人 ... ', self.webwxgetcontact)
-        self._echo(u'[*] 应有 %s 个联系人，读取到联系人 %d 个' %
-                   (self.MemberCount, len(self.MemberList)))
-        print
-        self._echo(u'[*] 共有 %d 个群 | %d 个直接联系人 | %d 个特殊账号 ｜ %d 公众号或服务号' % (len(self.GroupList),
-                                                                         len(self.ContactList), len(self.SpecialUsersList), len(self.PublicUsersList)))
-        print
-        self._run(u'[*] 获取群 ... ', self.webwxbatchgetcontact)
-        logging.debug(u'[*] 微信网页版 ... 开动')
-        if self.DEBUG:
-            print self
-        logging.debug(self)
-
-        if self.interactive and raw_input(u'[*] 是否开启自动回复模式(y/n): ') == 'y':
-            self.autoReplyMode = True
-            print u'[*] 自动回复模式 ... 开启'
-            logging.debug(u'[*] 自动回复模式 ... 开启')
-        else:
-            print u'[*] 自动回复模式 ... 关闭'
-            logging.debug(u'[*] 自动回复模式 ... 关闭')
-
-        listenProcess = multiprocessing.Process(target=self.listenMsgMode)
-        listenProcess.start()
-
-        while True:
-            text = raw_input('')
-            text = text.decode(sys.stdin.encoding)
-            logging.info(text.encode('utf-8'))
-            if text == 'quit':
-                listenProcess.terminate()
-                print(u'[*] 退出微信')
-                logging.debug(u'[*] 退出微信')
-                exit()
-            elif text[:2] == '->':
-                [name, word] = text[2:].split(':')
-                logging.info((name + ':name,' + word + 'word').encode('utf-8'))
-                if name == 'all':
-                    self.sendMsgToAll(word)
-                else:
-                    self.sendMsg(name, word)
-            elif text[:3] == 'm->':
-                [name, file] = text[3:].split(':')
-                self.sendMsg(name, file, True)
-            
+    def reply_change(self,auto):
+        self.autoReplyMode = auto
+        
     
     def handleMsg(self, r):
-        self.autoReplyMode = True
+
         for msg in r['AddMsgList']:
             
             msgType = msg['MsgType']
@@ -174,7 +111,7 @@ class WXLogin(WebWeixin):
                 raw_msg = {'raw_msg': msg}
                 self._showMsg(raw_msg)
                 
-                
+
                         
                 if content[0:4] == u'cmd:':
                     cmd = content[4:]
@@ -201,17 +138,3 @@ class WXLogin(WebWeixin):
                     'raw_msg': msg, 'message': u'[*] 该消息类型为: %d，可能是表情，图片, 链接或红包' % msg['MsgType']}
                 #self._showMsg(raw_msg)
                 
-                
-if __name__ == '__main__':
-
-    logger = logging.getLogger(__name__)
-    import coloredlogs
-    coloredlogs.install(level='INFO')
-
-    webwx = WXLogin()
-    webwx.start()
-        
-        
-        
-        
-        

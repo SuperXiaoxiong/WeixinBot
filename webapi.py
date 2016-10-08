@@ -7,6 +7,7 @@ Created on 2016年10月6日
 import web
 from wxlogin import *
 from pprint import pprint
+import threading
 
 web.config.debug = False
 
@@ -16,26 +17,7 @@ urls = (
     )
 
 
-class Test():
-    def __init__(self):
-        
-        print '1'*20
-        
-    def GET(self):
-        print '2'*20
-        num.add_num()
-        return num.num
-        #session.count.add_num()
-        #print session.count.num
-        #return str(session.count.num)
-    
-class CountNum():
-    
-    def __init__(self):
-        self.num = 1
-    
-    def add_num(self):
-        self.num = self.num + 1 
+
         
 class ManageApi():
             
@@ -69,34 +51,41 @@ class ManageApi():
         name = data['name']
         word = data['word']
         webwx.sendMsg(name, word)
-
-if __name__ == '__main__':
-    
-    
-    webwx = WXLogin()
-    webwx.login_module()
-    listenProcess = multiprocessing.Process(target=webwx.listenMsgMode)
-    listenProcess.start()
-
-    num = CountNum()
-    app = web.application(urls,globals())
-    app.run()
-    print '*'*20
+        
+def input_cmd():
     while True:
         cmd = raw_input()
         cmd = cmd.decode(sys.stdin.encoding)
         if cmd == 'quit':
-            listenProcess.terminate()
+            
             print(u'[*] 退出微信')
             exit()
         elif cmd[:2] == '->':
             [name, word] = cmd[2:].split(':')
             logging.info((name + ':name,' + word + 'word').encode('utf-8'))
             webwx.sendMsg(name, word)
-        elif cmd[:11] == 'autoreplay:':
-            a = cmd[11:]
+        elif cmd[:6] == 'reply:':
+            a = cmd[6:]
             if int(a) == 1:
-                webwx.autoReplyMode = True
+                webwx.reply_change(True)
             else:
-                webwx.autoReplyMode = False
-                
+                webwx.reply_change(False)   
+        
+            
+if __name__ == '__main__':
+    
+    
+    webwx = WXLogin()
+    webwx.login_module()
+    t_listen = threading.Thread(target=webwx.listenMsgMode,args = ())
+    t_listen.setDaemon(True)
+    t_listen.start()
+    
+    
+    t_input = threading.Thread(target=input_cmd, args=())
+    t_input.setDaemon(True)
+    t_input.start()
+
+    
+    app = web.application(urls,globals())
+    app.run()

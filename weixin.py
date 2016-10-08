@@ -323,7 +323,10 @@ class WebWeixin(object):
         ]
         for host in SyncHost:
             self.syncHost = host
-            [retcode, selector] = self.synccheck()
+            try:
+                [retcode, selector] = self.synccheck()
+            except :
+                pass
             if retcode == '0':
                 return True
         return False
