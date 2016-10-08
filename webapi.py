@@ -41,13 +41,11 @@ class ManageApi():
             
     def __init__(self):
         
-        print '1'*10
+        pass
        
             
     def GET(self):
         
-            
-        print 'GET2' * 10
         print 'qsize api' + str(webwx.q.qsize())
         print u'[*] 共有 %d 个群 | %d 个直接联系人 | %d 个特殊账号 ｜ %d 公众号或服务号' % (len(webwx.GroupList),len(webwx.ContactList), len(webwx.SpecialUsersList), len(webwx.PublicUsersList))
   
@@ -81,8 +79,24 @@ if __name__ == '__main__':
     listenProcess.start()
 
     num = CountNum()
-    
-    
     app = web.application(urls,globals())
     app.run()
-    print '2'
+    print '*'*20
+    while True:
+        cmd = raw_input()
+        cmd = cmd.decode(sys.stdin.encoding)
+        if cmd == 'quit':
+            listenProcess.terminate()
+            print(u'[*] 退出微信')
+            exit()
+        elif cmd[:2] == '->':
+            [name, word] = cmd[2:].split(':')
+            logging.info((name + ':name,' + word + 'word').encode('utf-8'))
+            webwx.sendMsg(name, word)
+        elif cmd[:11] == 'autoreplay:':
+            a = cmd[11:]
+            if int(a) == 1:
+                webwx.autoReplyMode = True
+            else:
+                webwx.autoReplyMode = False
+                

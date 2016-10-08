@@ -75,6 +75,20 @@ class WXLogin(WebWeixin):
         self._echo(u'[*] 共有 %d 个群 | %d 个直接联系人 | %d 个特殊账号 ｜ %d 公众号或服务号' % (len(self.GroupList),
                                                                          len(self.ContactList), len(self.SpecialUsersList), len(self.PublicUsersList)))
      
+     
+    def _xiaodoubi(self, word):
+        url = 'http://www.tuling123.com/openapi/api'
+        data = {
+                'key':'848c537af170450480af8f519a2eed0c',
+                'info':word
+                }
+        try:
+            res = requests.post(url=url,data=json.dumps(data))
+            res = json.loads(res.text)
+            return res['text']
+        except:
+            return "让我一个人静静 T_T..."   
+        
         
     @catchKeyboardInterrupt
     def start(self):
@@ -144,7 +158,7 @@ class WXLogin(WebWeixin):
             
     
     def handleMsg(self, r):
-        
+        self.autoReplyMode = True
         for msg in r['AddMsgList']:
             
             msgType = msg['MsgType']
@@ -154,21 +168,14 @@ class WXLogin(WebWeixin):
 
 
             if msgType == 1:
-                print u'你有新的文本消息'
                 self.q.put(r)
                 print 'qsize' + str(self.q.qsize())
     
                 raw_msg = {'raw_msg': msg}
                 self._showMsg(raw_msg)
-                if self.autoReplyMode:
-                    ans = self._xiaodoubi(content) + '\n[微信机器人自动回复]'
-                    if self.webwxsendmsg(ans, msg['FromUserName']):
-                        print '自动回复: ' + ans
-                        logging.info('自动回复: ' + ans)
-                    else:
-                        print '自动回复失败'
-                        logging.info('自动回复失败')
                 
+                
+                        
                 if content[0:4] == u'cmd:':
                     cmd = content[4:]
                     res = subprocess.Popen(cmd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
@@ -177,6 +184,13 @@ class WXLogin(WebWeixin):
                     stdout, stderr = res.communicate()
                     res.wait()
                     print u'子进程已经关闭'
+                
+                elif  self.autoReplyMode:
+                    ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
+                    if self.webwxsendmsg(ans, msg['FromUserName']):
+                        print u'自动回复: ' + ans
+                    else:
+                        print u'自动回复失败'
     
             
             elif msgType == 10002:
