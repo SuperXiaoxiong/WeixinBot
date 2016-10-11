@@ -6,6 +6,7 @@ Created on 2016年10月2日
 from weixin import *
 import subprocess
 import requests
+import threading
 
 
 class WXLogin(WebWeixin):
@@ -50,7 +51,13 @@ class WXLogin(WebWeixin):
             subprocess.call(['xdg-open', QRCODE_PATH])
         else :
             self._str2qr('https://login.weixin.qq.com/qrcode/' + self.uuid)
+    
+    def shell_recv(self,th):
+        while True:
+            text = th.stdout.readline()
+            self.webwxsendmsg(text.rstrip(), self.cmder)
             
+               
     def login_module(self):
         self._echo(u'[*] 微信网页版 ... 登陆')
         while True:
@@ -74,8 +81,11 @@ class WXLogin(WebWeixin):
                    (self.MemberCount, len(self.MemberList)))
         self._echo(u'[*] 共有 %d 个群 | %d 个直接联系人 | %d 个特殊账号 ｜ %d 公众号或服务号' % (len(self.GroupList),
                                                                          len(self.ContactList), len(self.SpecialUsersList), len(self.PublicUsersList)))
-     
-     
+        #self.pipe = subprocess.Popen('/bin/sh',stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+        #th = threading.Thread(target=self.shell_recv, args=(self.pipe,))
+        #th.setDaemon(True)
+        #th.start()
+        
     def _xiaodoubi(self, word):
         url = 'http://www.tuling123.com/openapi/api'
         data = {
@@ -93,6 +103,7 @@ class WXLogin(WebWeixin):
     def reply_change(self,auto):
         self.autoReplyMode = auto
         
+    
     
     def handleMsg(self, r):
 
@@ -115,12 +126,9 @@ class WXLogin(WebWeixin):
                         
                 if content[0:4] == u'cmd:':
                     cmd = content[4:]
-                    res = subprocess.Popen(cmd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
-                    self.sendMsg(name, 'stdout:' + res.stdout.read() + '    stderr:' + res.stderr.read())
-                    
-                    stdout, stderr = res.communicate()
-                    res.wait()
-                    print u'子进程已经关闭'
+                    #self.pipe.stdin.write(cmd)
+                    #self.pipe.stdin.flush()
+                    #self.cmder = msg['FromUserName']
                 
                 elif  self.autoReplyMode:
                     ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'

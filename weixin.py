@@ -313,20 +313,25 @@ class WebWeixin(object):
 
     def testsynccheck(self):
         SyncHost = [
+            'webpush2.wx.qq.com',
+            'webpush.wx.qq.com',
             'webpush.weixin.qq.com',
             'webpush2.weixin.qq.com',
             'webpush.wechat.com',
             'webpush1.wechat.com',
             'webpush2.wechat.com',
             'webpush1.wechatapp.com',
-            # 'webpush.wechatapp.com'
+            'webpush.wechatapp.com'
         ]
         for host in SyncHost:
             self.syncHost = host
+            '''
             try:
                 [retcode, selector] = self.synccheck()
             except :
                 pass
+                '''
+            [retcode, selector] = self.synccheck()
             if retcode == '0':
                 return True
         return False
@@ -343,11 +348,17 @@ class WebWeixin(object):
         }
         url = 'https://' + self.syncHost + \
             '/cgi-bin/mmwebwx-bin/synccheck?' + urllib.urlencode(params)
-        data = self._get(url)
+        
+        try:
+            data = self._get(url)
+        except:
+            print 'retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost
+            return [-1, -1]
         pm = re.search(
-            r'window.synccheck={retcode:"(\d+)",selector:"(\d+)"}', data)
+                r'window.synccheck={retcode:"(\d+)",selector:"(\d+)"}', data)
         retcode = pm.group(1)
         selector = pm.group(2)
+        print 'retcode : ' + retcode,  'selector: '   + selector , ' synchost : ' + self.syncHost
         return [retcode, selector]
 
     def webwxsync(self):
@@ -359,7 +370,10 @@ class WebWeixin(object):
             'SyncKey': self.SyncKey,
             'rr': ~int(time.time())
         }
-        dic = self._post(url, params)
+        try:
+            dic = self._post(url, params)
+        except:
+            return None
         if self.DEBUG:
             print json.dumps(dic, indent=4)
             logging.debug(json.dumps(dic, indent=4))
@@ -824,6 +838,8 @@ class WebWeixin(object):
                     r = self.webwxsync()
                 elif selector == '0':
                     time.sleep(1)
+                else:
+                    r = self.webwxsync()
             if (time.time() - self.lastCheckTs) <= 20:
                 time.sleep(time.time() - self.lastCheckTs)
 
