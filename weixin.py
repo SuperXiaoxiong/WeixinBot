@@ -313,7 +313,8 @@ class WebWeixin(object):
 
     def testsynccheck(self):
         SyncHost = [
-            'webpush2.wx.qq.com',
+            
+            'webpush.wx2.qq.com',
             'webpush.wx.qq.com',
             'webpush.weixin.qq.com',
             'webpush2.weixin.qq.com',
