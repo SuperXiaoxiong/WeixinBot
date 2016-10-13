@@ -18,7 +18,7 @@ import logging
 from collections import defaultdict
 from urlparse import urlparse
 from lxml import html
-
+import socket
 # for media upload
 import mimetypes
 from requests_toolbelt.multipart.encoder import MultipartEncoder
@@ -351,16 +351,32 @@ class WebWeixin(object):
             '/cgi-bin/mmwebwx-bin/synccheck?' + urllib.urlencode(params)
         
         try:
-            data = self._get(url)
-        except:
-            print 'retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost
+            #data = self._get(url)
+            request = urllib2.Request(url=url)
+            request.add_header(
+                    'ContentType', 'application/json; charset=UTF-8')
+            response = urllib2.urlopen(request, timeout=60)
+            data = response.read()
+
+        except urllib2.URLError, e:  
+            print e.reason
+            self.loggerRetcode.warning( e.reason)
+            print  ' urllib2.URLError  retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost
+            self.loggerRetcode.warning( 'retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost)
             return [-1, -1]
+        except  Exception,e:
+            print e.reason 
+            self.loggerRetcode.warning( e.reason)
+            print ' 222 retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost
+            self.loggerRetcode.info( 'retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost)
+            return [-1, -1]
+            
         pm = re.search(
                 r'window.synccheck={retcode:"(\d+)",selector:"(\d+)"}', data)
         retcode = pm.group(1)
         selector = pm.group(2)
-        print 'retcode : ' + retcode,  'selector: '   + selector , ' synchost : ' + self.syncHost,
-        print  time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
+        print 'retcode : ' +retcode,  'selector: '   + selector , ' synchost : ' + self.syncHost
+        self.loggerRetcode.info( 'retcode : ' +retcode,  'selector: '   + selector , ' synchost : ' + self.syncHost)
         return [retcode, selector]
 
     def webwxsync(self):

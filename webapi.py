@@ -1,7 +1,7 @@
 #coding:utf-8
 '''
 Created on 2016年10月6日
-@author: knight110
+@author: 肖雄
 '''
 
 import web

@@ -16,6 +16,12 @@ class WXLogin(WebWeixin):
         super(WXLogin, self).__init__()
         self.graph = 'true'
         self.q = multiprocessing.Queue()
+        self.loggerRetcode = logging.getLogger('test_logger')
+        sh = logging.FileHandler('tmp.log',mode='a',encoding=sys.getfilesystemencoding())
+        sh.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s %(filename)s %(name)s %(message)s ' )
+        sh.setFormatter(formatter)
+        self.loggerRetcode.addHandler(sh)
        
     def _post(self, url, params, jsonfmt=True):
             if jsonfmt:
