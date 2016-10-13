@@ -359,7 +359,8 @@ class WebWeixin(object):
                 r'window.synccheck={retcode:"(\d+)",selector:"(\d+)"}', data)
         retcode = pm.group(1)
         selector = pm.group(2)
-        print 'retcode : ' + retcode,  'selector: '   + selector , ' synchost : ' + self.syncHost
+        print 'retcode : ' + retcode,  'selector: '   + selector , ' synchost : ' + self.syncHost,
+        print  time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
         return [retcode, selector]
 
     def webwxsync(self):

@@ -7,7 +7,7 @@ from weixin import *
 import subprocess
 import requests
 import threading
-
+import webbrowser
 
 class WXLogin(WebWeixin):
     
@@ -46,7 +46,8 @@ class WXLogin(WebWeixin):
         print sys.platform
         print self.graph
         if sys.platform.startswith('win'):
-            subprocess.call(['open',QRCODE_PATH])
+            #subprocess.call(['open',QRCODE_PATH])
+            webbrowser.open(QRCODE_PATH)
         elif sys.platform.find('linux')>= 0 and self.graph:
             subprocess.call(['xdg-open', QRCODE_PATH])
         else :
@@ -65,7 +66,7 @@ class WXLogin(WebWeixin):
             self._echo(u'[*] 正在获取二维码 ... 成功')
             self.genQRCode()
             self._echo(u'[*]正在生成二维码...成功')
-            print '[*] 请使用微信扫描二维码以登录 ... '
+            print u'[*] 请使用微信扫描二维码以登录 ... '
             if not self.waitForLogin():
                 continue
                 print u'[*] 请在手机上点击确认以登录 ... '
@@ -97,7 +98,7 @@ class WXLogin(WebWeixin):
             res = json.loads(res.text)
             return res['text']
         except:
-            return "让我一个人静静 T_T..."   
+            return u"让我一个人静静 T_T..."   
         
         
     def reply_change(self,auto):
