@@ -13,7 +13,6 @@ web.config.debug = False
 
 urls = (
     '/text/','ManageApi',
-    '/test/','Test'
     )
 
 

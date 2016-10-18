@@ -337,47 +337,24 @@ class WebWeixin(object):
                 return True
         return False
 
-    def synccheck(self):
-        params = {
-            'r': int(time.time()),
-            'sid': self.sid,
-            'uin': self.uin,
-            'skey': self.skey,
-            'deviceid': self.deviceId,
-            'synckey': self.synckey,
-            '_': int(time.time()),
-        }
-        url = 'https://' + self.syncHost + \
-            '/cgi-bin/mmwebwx-bin/synccheck?' + urllib.urlencode(params)
-        
-        try:
-            #data = self._get(url)
-            request = urllib2.Request(url=url)
-            request.add_header(
-                    'ContentType', 'application/json; charset=UTF-8')
-            response = urllib2.urlopen(request, timeout=60)
-            data = response.read()
-
-        except urllib2.URLError, e:  
-            print e.reason
-            self.loggerRetcode.warning( e.reason)
-            print  ' urllib2.URLError  retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost
-            self.loggerRetcode.warning( 'retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost)
-            return [-1, -1]
-        except  Exception,e:
-            print e.reason 
-            self.loggerRetcode.warning( e.reason)
-            print ' 222 retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost
-            self.loggerRetcode.info( 'retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost)
-            return [-1, -1]
-            
-        pm = re.search(
+        def synccheck(self):
+            params = {
+                'r': int(time.time()),
+                'sid': self.sid,
+                'uin': self.uin,
+                'skey': self.skey,
+                'deviceid': self.deviceId,
+                'synckey': self.synckey,
+                '_': int(time.time()),
+            }
+            url = 'https://' + self.syncHost + \
+                '/cgi-bin/mmwebwx-bin/synccheck?' + urllib.urlencode(params)
+            data = self._get(url)
+            pm = re.search(
                 r'window.synccheck={retcode:"(\d+)",selector:"(\d+)"}', data)
-        retcode = pm.group(1)
-        selector = pm.group(2)
-        print 'retcode : ' +retcode,  'selector: '   + selector , ' synchost : ' + self.syncHost
-        self.loggerRetcode.info( 'retcode : ' +retcode,  'selector: '   + selector , ' synchost : ' + self.syncHost)
-        return [retcode, selector]
+            retcode = pm.group(1)
+            selector = pm.group(2)
+            return [retcode, selector]
 
     def webwxsync(self):
         url = self.base_uri + \
