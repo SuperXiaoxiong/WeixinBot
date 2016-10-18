@@ -78,7 +78,7 @@ class WXLogin(WebWeixin):
         except Exception,e:
             print str(e)
             self.loggerRetcode.warning(str(e))
-            self.webwxgetcontact()
+            return self.webwxgetcontact()
         else:   
             self.MemberCount = dic['MemberCount']
             self.MemberList = dic['MemberList']
