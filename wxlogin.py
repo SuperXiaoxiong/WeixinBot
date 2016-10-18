@@ -42,9 +42,11 @@ class WXLogin(WebWeixin):
         request = urllib2.Request(url=url, data=urllib.urlencode(params))
         response = urllib2.urlopen(request)
         data = response.read()
+        #print data
         QRCODE_PATH = self._saveFile('qrcode.jpg', data, '_showQRCodeImg')
         print sys.platform
         print self.graph
+        
         if sys.platform.startswith('win'):
             subprocess.call(['open',QRCODE_PATH])
         elif sys.platform.find('linux')>= 0 and self.graph:
@@ -108,35 +110,35 @@ class WXLogin(WebWeixin):
     def handleMsg(self, r):
 
         for msg in r['AddMsgList']:
-            
+            #print msg
             msgType = msg['MsgType']
             name = self.getUserRemarkName(msg['FromUserName'])
+            print name+'123345566'
             content = msg['Content']
             msgid = msg['MsgId']
-
-
+            To_name = self.getUserRemarkName(msg['ToUserName'])
+            print To_name+'testttttttttt'
             if msgType == 1:
                 self.q.put(r)
                 print 'qsize' + str(self.q.qsize())
-    
                 raw_msg = {'raw_msg': msg}
                 self._showMsg(raw_msg)
-                
-
-                        
                 if content[0:4] == u'cmd:':
                     cmd = content[4:]
                     #self.pipe.stdin.write(cmd)
                     #self.pipe.stdin.flush()
                     #self.cmder = msg['FromUserName']
-                
+                '''
                 elif  self.autoReplyMode:
-                    ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
-                    if self.webwxsendmsg(ans, msg['FromUserName']):
-                        print u'自动回复: ' + ans
+                    if To_name == 'GROUP':
+                            pass
                     else:
-                        print u'自动回复失败'
-    
+                        ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
+                        if self.webwxsendmsg(ans, msg['FromUserName']):
+                            print u'自动回复: ' + ans
+                        else:
+                            print u'自动回复失败'
+    '''
             
             elif msgType == 10002:
                 raw_msg = {'raw_msg': msg, 'message': u'%s 撤回了一条消息' % name}

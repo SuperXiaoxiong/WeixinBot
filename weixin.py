@@ -698,10 +698,17 @@ class WebWeixin(object):
                 content = msg['message']
                
         if groupName != None:
-            print '%s |%s| %s -> %s: %s' % (message_id, groupName.strip(), srcName.strip(), dstName.strip(), content)
+            print '%s |%s| %s -----> %s: %s' % (message_id, groupName.strip(), srcName.strip(), dstName.strip(), content)
+                
             logging.info('%s |%s| %s -> %s: %s' % (message_id, groupName.strip(),srcName.strip(), dstName.strip(), content))
         else:
-            print '%s %s -> %s: %s' % (message_id, srcName.strip(), dstName.strip(), content)
+            print '%s %s -++++++> %s: %s' % (message_id, srcName.strip(), dstName.strip(), content)
+            if self.autoReplyMode:
+                ans = self._xiaodoubi(content)# + u'\n[微信机器人自动回复]'
+                if self.webwxsendmsg(ans, msg['raw_msg']['FromUserName']):
+                    print u'自动回复: ' + ans
+                else:
+                    print u'自动回复失败'
             logging.info('%s %s -> %s: %s' % (message_id, srcName.strip(),
                                               dstName.strip(), content.replace('<br/>', '\n')))
 
@@ -851,7 +858,7 @@ class WebWeixin(object):
                 with open(word, 'r') as f:
                     for line in f.readlines():
                         line = line.replace('\n', '')
-                        self._echo('-> ' + name + ': ' + line)
+                        self._echo('-> ' + name + ':::: ' + line)
                         if self.webwxsendmsg(line, id):
                             print ' [成功]'
                         else:
