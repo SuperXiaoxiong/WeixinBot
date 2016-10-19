@@ -7,11 +7,14 @@ from weixin import *
 import subprocess
 import requests
 import threading
+import Queue
 
-
-class WXLogin(WebWeixin):
+class Timemessage(object):
+    def __init__(self,fromname,toname,content,flagtime):
+        
+#class WXLogin(WebWeixin):
     
-    def __init__(self):
+   # def __init__(self):
         '''添加图形选项，如果-NG运行xdg-open生成二维码，否则命令行输出二维码'''
         super(WXLogin, self).__init__()
         self.graph = 'true'
@@ -108,40 +111,60 @@ class WXLogin(WebWeixin):
     
     
     def handleMsg(self, r):
-
         for msg in r['AddMsgList']:
             #print msg
+            srcName = None
+            dstName = None
+            groupName = None
+            content = None
+            sendtime = None
+            flagtime = time.time()
+            print flagtime
+            srcName = self.getUserRemarkName(msg['FromUserName'])
+            dstName = self.getUserRemarkName(msg['ToUserName'])
+     
+            sendtime = msg['CreateTime']
+            
             msgType = msg['MsgType']
-            name = self.getUserRemarkName(msg['FromUserName'])
-            print name+'123345566'
             content = msg['Content']
             msgid = msg['MsgId']
-            To_name = self.getUserRemarkName(msg['ToUserName'])
-            print To_name+'testttttttttt'
+            if msg['FromUserName'][:2] == '@@':
+                # 接收到来自群的消息
+                if re.search(":<br/>", content, re.IGNORECASE):
+                    [people, content] = content.split(':<br/>')
+                    groupName = srcName
+                    srcName = self.getUserRemarkName(people)
+                    dstName = 'GROUP'
+                else:
+                    groupName = srcName
+                    srcName = 'SYSTEM'
+            elif msg['ToUserName'][:2] == '@@':
+                # 自己发给群的消息
+                groupName = dstName
+                dstName = 'GROUP'
+                
             if msgType == 1:
                 self.q.put(r)
                 print 'qsize' + str(self.q.qsize())
                 raw_msg = {'raw_msg': msg}
                 self._showMsg(raw_msg)
-                if content[0:4] == u'cmd:':
-                    cmd = content[4:]
-                    #self.pipe.stdin.write(cmd)
-                    #self.pipe.stdin.flush()
-                    #self.cmder = msg['FromUserName']
-                '''
-                elif  self.autoReplyMode:
-                    if To_name == 'GROUP':
-                            pass
-                    else:
+                if groupName != None:
+                    if self.autoReplyMode:
                         ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
                         if self.webwxsendmsg(ans, msg['FromUserName']):
                             print u'自动回复: ' + ans
                         else:
                             print u'自动回复失败'
-    '''
-            
+                            '''
+                if content[0:4] == u'cmd:':
+                    cmd = content[4:]
+                    #self.pipe.stdin.write(cmd)
+                    #self.pipe.stdin.flush()
+                    #self.cmder = msg['FromUserName']
+                    
+                    '''
             elif msgType == 10002:
-                raw_msg = {'raw_msg': msg, 'message': u'%s 撤回了一条消息' % name}
+                raw_msg = {'raw_msg': msg, 'message': u'%s 撤回了一条消息' % srcName}
                 self._showMsg(raw_msg)
             else:
                 raw_msg = {
