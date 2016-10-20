@@ -1,7 +1,7 @@
 #coding:utf-8
 '''
 Created on 2016年10月6日
-@author: 肖雄
+@author: knight110
 '''
 
 import web
@@ -13,6 +13,7 @@ web.config.debug = False
 
 urls = (
     '/text/','ManageApi',
+    '/test/','Test'
     )
 
 

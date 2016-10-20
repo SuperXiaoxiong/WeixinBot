@@ -7,8 +7,11 @@ from weixin import *
 import subprocess
 import requests
 import threading
-import webbrowser
+#import Queue
 
+#class Timemessage(object):
+  #  def __init__(self,fromname,toname,content,flagtime):
+        
 class WXLogin(WebWeixin):
     
     def __init__(self):
@@ -16,14 +19,6 @@ class WXLogin(WebWeixin):
         super(WXLogin, self).__init__()
         self.graph = 'true'
         self.q = multiprocessing.Queue()
-
-        self.loggerRetcode = logging.getLogger('test_logger')        
-        formatter = logging.Formatter('%(asctime)s %(filename)s %(name)s %(message)s ' )
-        sh = logging.FileHandler('tmp.log',mode='a',encoding=sys.getfilesystemencoding())
-        sh.setFormatter(formatter)
-        sh.setLevel(logging.INFO)
-        self.loggerRetcode.addHandler(sh)
-        self.loggerRetcode.setLevel(logging.INFO)
        
     def _post(self, url, params, jsonfmt=True):
             if jsonfmt:
@@ -56,8 +51,7 @@ class WXLogin(WebWeixin):
         print self.graph
         
         if sys.platform.startswith('win'):
-            #subprocess.call(['open',QRCODE_PATH])
-            webbrowser.open(QRCODE_PATH)
+            subprocess.call(['open',QRCODE_PATH])
         elif sys.platform.find('linux')>= 0 and self.graph:
             subprocess.call(['xdg-open', QRCODE_PATH])
         else :
@@ -67,87 +61,8 @@ class WXLogin(WebWeixin):
         while True:
             text = th.stdout.readline()
             self.webwxsendmsg(text.rstrip(), self.cmder)
-    
-    
-    def webwxgetcontact(self):
-        SpecialUsers = self.SpecialUsers
-        print self.base_uri
-        url = self.base_uri + '/webwxgetcontact?pass_ticket=%s&skey=%s&r=%s' % (
-            self.pass_ticket, self.skey, int(time.time()))
-        
-        try:
-            dic = self._post(url, {})
-        except Exception,e:
-            print str(e)
-            self.loggerRetcode.warning(str(e))
-            return self.webwxgetcontact()
-        else:   
-            self.MemberCount = dic['MemberCount']
-            self.MemberList = dic['MemberList']
-            ContactList = self.MemberList[:]
-            GroupList = self.GroupList[:]
-            PublicUsersList = self.PublicUsersList[:]
-            SpecialUsersList = self.SpecialUsersList[:]
-    
-            for i in xrange(len(ContactList) - 1, -1, -1):
-                Contact = ContactList[i]
-                if Contact['VerifyFlag'] & 8 != 0:  # 公众号/服务号
-                    ContactList.remove(Contact)
-                    self.PublicUsersList.append(Contact)
-                elif Contact['UserName'] in SpecialUsers:  # 特殊账号
-                    ContactList.remove(Contact)
-                    self.SpecialUsersList.append(Contact)
-                elif Contact['UserName'].find('@@') != -1:  # 群聊
-                    ContactList.remove(Contact)
-                    self.GroupList.append(Contact)
-                elif Contact['UserName'] == self.User['UserName']:  # 自己
-                    ContactList.remove(Contact)
-            self.ContactList = ContactList
-    
-            return True  
-    
-          
-    def synccheck(self):
-        params = {
-            'r': int(time.time()),
-            'sid': self.sid,
-            'uin': self.uin,
-            'skey': self.skey,
-            'deviceid': self.deviceId,
-            'synckey': self.synckey,
-            '_': int(time.time()),
-        }
-        url = 'https://' + self.syncHost + \
-            '/cgi-bin/mmwebwx-bin/synccheck?' + urllib.urlencode(params)
-        
-        try:
-            #data = self._get(url)
-            request = urllib2.Request(url=url)
-            request.add_header(
-                    'ContentType', 'application/json; charset=UTF-8')
-            response = urllib2.urlopen(request, timeout=30)
-            data = response.read()
-
-        except urllib2.URLError, e:  
-            print str(e)
-            self.loggerRetcode.warning( str(e))
-            print  ' urllib2.URLError  retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost
-            self.loggerRetcode.warning( 'retcode : ' +'-1'+  'selector: '   + '-1' + ' synchost : ' + self.syncHost)
-            return [-1, -1]
-        except  Exception,e:
-            print str(e)
-            self.loggerRetcode.warning( str(e))
-            print ' 222 retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost
-            self.loggerRetcode.warning( 'retcode : ' +'-1' +  'selector: '   + '-1' +  ' synchost : ' + self.syncHost)
-            return [-1, -1]
             
-        pm = re.search(
-                r'window.synccheck={retcode:"(\d+)",selector:"(\d+)"}', data)
-        retcode = pm.group(1)
-        selector = pm.group(2)
-        self.loggerRetcode.info( 'retcode : ' +retcode +' selector: '   +  selector +  ' synchost : ' + self.syncHost)
-        return [retcode, selector]
-              
+               
     def login_module(self):
         self._echo(u'[*] 微信网页版 ... 登陆')
         while True:
@@ -155,7 +70,7 @@ class WXLogin(WebWeixin):
             self._echo(u'[*] 正在获取二维码 ... 成功')
             self.genQRCode()
             self._echo(u'[*]正在生成二维码...成功')
-            print u'[*] 请使用微信扫描二维码以登录 ... '
+            print '[*] 请使用微信扫描二维码以登录 ... '
             if not self.waitForLogin():
                 continue
                 print u'[*] 请在手机上点击确认以登录 ... '
@@ -187,17 +102,12 @@ class WXLogin(WebWeixin):
             res = json.loads(res.text)
             return res['text']
         except:
-            return u"让我一个人静静 T_T..."   
+            return "让我一个人静静 T_T..."   
         
         
     def reply_change(self,auto):
         self.autoReplyMode = auto
-        if auto:
-            print u'自动回复开启'
-            self.loggerRetcode.info(u'自动回复开启')
-        else:
-            print u'自动回复关闭'
-            self.loggerRetcode.info(u'自动回复关闭')
+        
     
     
     def handleMsg(self, r):
