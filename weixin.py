@@ -698,11 +698,11 @@ class WebWeixin(object):
                 content = msg['message']
                
         if groupName != None:
-            print '%s |%s| %s -----> %s: %s' % (message_id, groupName.strip(), srcName.strip(), dstName.strip(), content)
+            print '%s |%s| %s -> %s: %s' % (message_id, groupName.strip(), srcName.strip(), dstName.strip(), content)
                 
             logging.info('%s |%s| %s -> %s: %s' % (message_id, groupName.strip(),srcName.strip(), dstName.strip(), content))
         else:
-            print '%s %s -++++++> %s: %s' % (message_id, srcName.strip(), dstName.strip(), content)
+            print '%s %s -> %s: %s' % (message_id, srcName.strip(), dstName.strip(), content)
             logging.info('%s %s -> %s: %s' % (message_id, srcName.strip(),
                                               dstName.strip(), content.replace('<br/>', '\n')))
 
@@ -852,7 +852,7 @@ class WebWeixin(object):
                 with open(word, 'r') as f:
                     for line in f.readlines():
                         line = line.replace('\n', '')
-                        self._echo('-> ' + name + ':::: ' + line)
+                        self._echo('-> ' + name + ': ' + line)
                         if self.webwxsendmsg(line, id):
                             print ' [成功]'
                         else:

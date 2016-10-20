@@ -7,14 +7,14 @@ from weixin import *
 import subprocess
 import requests
 import threading
-import Queue
+#import Queue
 
-class Timemessage(object):
-    def __init__(self,fromname,toname,content,flagtime):
+#class Timemessage(object):
+  #  def __init__(self,fromname,toname,content,flagtime):
         
-#class WXLogin(WebWeixin):
+class WXLogin(WebWeixin):
     
-   # def __init__(self):
+    def __init__(self):
         '''添加图形选项，如果-NG运行xdg-open生成二维码，否则命令行输出二维码'''
         super(WXLogin, self).__init__()
         self.graph = 'true'
