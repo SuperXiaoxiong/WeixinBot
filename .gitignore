@@ -1,6 +1,10 @@
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template
 # Byte-compiled / optimized / DLL files
+/mtk/.settings
+/mtk/.project
+/mtk/.pydevproject
+
 __pycache__/
 *.py[cod]
 *$py.class
