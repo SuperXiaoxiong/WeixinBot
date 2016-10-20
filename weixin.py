@@ -693,6 +693,7 @@ class WebWeixin(object):
                
         if groupName != None:
             print '%s |%s| %s -> %s: %s' % (message_id, groupName.strip(), srcName.strip(), dstName.strip(), content)
+                
             logging.info('%s |%s| %s -> %s: %s' % (message_id, groupName.strip(),srcName.strip(), dstName.strip(), content))
         else:
             print '%s %s -> %s: %s' % (message_id, srcName.strip(), dstName.strip(), content)
