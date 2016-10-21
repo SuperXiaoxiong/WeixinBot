@@ -238,6 +238,7 @@ class WXLogin(WebWeixin):
                 print 'qsize' + str(self.q.qsize())
                 raw_msg = {'raw_msg': msg}
                 self._showMsg(raw_msg)
+                #self.autoReplyMode = True
                 if groupName == None:
                     if self.autoReplyMode:
                         ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'

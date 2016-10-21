@@ -12,13 +12,71 @@ import threading
 web.config.debug = False
 
 urls = (
-    '/text/','ManageApi',
+    '/msg/','MsgApi',
+    '/reply/','AutoReplyApi',
+    '/groupLists/','GroupListsApi',
+    '/groupList','/GroupListApi',
+    '/contactList','ContactListApi',
     )
 
+class AutoReplyApi():
+    '''
+    AutoReplyApi 对自动回复状态进行操作
+    GET 方法查看自动回复状态，返回json格式的自动回复状态
+    POST 字段reply对自动回复状态进行更改，返回json格式的自动回复状态['操作boolean','状态']
+    True为开启，False为关闭
+    '''
+    
+    def GET(self):
+        return json.dumps(webwx.autoReplyMode)
+
+    
+    def POST(self):
+        data = web.data()
+        data = data.decode('utf-8')
+        data = json.loads(data)
+        try:
+            webwx.reply_change(data)
+            return json.dumps([True,webwx.autoReplyMode])
+        except:
+            return json.dumps([False,webwx.autoReplyMode])
+
+class GroupListsApi():
+    '''
+    GroupListsApi 对群进行增删改查操作
+    GET 返回json格式['群数',[name1,name2,...]]
+    POST 参数add(对应增加群srcname),del(删除群srcname),mvn(修改群srcname,dstname),返回json格式['操作boolean'.'群数',[name1,name2,...]]
+    '''
+    def GET(self):
+        pass
+    
+    
+    def POST(self):
+        pass
+    
 
 
+class ContactListApi():
+    '''
+    返回联系人列表
+    '''
+    pass
+
+
+class GroupListApi():
+    '''
+    GroupListApi 对单个群进行增删改查操作
+    GET 返回json格式['人数',[name1,name2,...]]
+    POST 参数 groupName,参数add(name),del(name),返回json格式['操作boolean',groupname,[name1,name2,...]]
+    '''
+    def GET(self):
+        pass
+    
+    def POST(self):
+        pass
+    
         
-class ManageApi():
+class MsgApi():
             
     def __init__(self):
         
