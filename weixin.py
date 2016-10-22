@@ -8,6 +8,7 @@ import requests
 import xml.dom.minidom
 import json
 import time
+import datetime
 import re
 import sys
 import os
@@ -18,7 +19,7 @@ import logging
 from collections import defaultdict
 from urlparse import urlparse
 from lxml import html
-import socket
+
 # for media upload
 import mimetypes
 from requests_toolbelt.multipart.encoder import MultipartEncoder
@@ -337,24 +338,30 @@ class WebWeixin(object):
                 return True
         return False
 
-        def synccheck(self):
-            params = {
-                'r': int(time.time()),
-                'sid': self.sid,
-                'uin': self.uin,
-                'skey': self.skey,
-                'deviceid': self.deviceId,
-                'synckey': self.synckey,
-                '_': int(time.time()),
-            }
-            url = 'https://' + self.syncHost + \
-                '/cgi-bin/mmwebwx-bin/synccheck?' + urllib.urlencode(params)
+    def synccheck(self):
+        params = {
+            'r': int(time.time()),
+            'sid': self.sid,
+            'uin': self.uin,
+            'skey': self.skey,
+            'deviceid': self.deviceId,
+            'synckey': self.synckey,
+            '_': int(time.time()),
+        }
+        url = 'https://' + self.syncHost + \
+            '/cgi-bin/mmwebwx-bin/synccheck?' + urllib.urlencode(params)
+        
+        try:
             data = self._get(url)
-            pm = re.search(
+        except:
+            print 'retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost
+            return [-1, -1]
+        pm = re.search(
                 r'window.synccheck={retcode:"(\d+)",selector:"(\d+)"}', data)
-            retcode = pm.group(1)
-            selector = pm.group(2)
-            return [retcode, selector]
+        retcode = pm.group(1)
+        selector = pm.group(2)
+        print 'retcode : ' + retcode,  'selector: '   + selector , ' synchost : ' + self.syncHost
+        return [retcode, selector]
 
     def webwxsync(self):
         url = self.base_uri + \
