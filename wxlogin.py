@@ -507,3 +507,6 @@ class WXLogin(WebWeixin):
                 print u'群',togp,u'不存在'
         else:
             print u'群',fromgp,u'不存在'
+    
+    def timeMsg(self,name,timer_flag,word):       
+        pass 

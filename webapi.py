@@ -22,6 +22,7 @@ urls = (
     '/groupLists/','GroupListsApi',
     '/group/','GroupApi',
     '/contactList/','ContactListApi',
+    '/timemsg/','TimeMsgApi',
     )
 
 class AutoReplyApi():
@@ -45,6 +46,38 @@ class AutoReplyApi():
             return json.dumps([True,webwx.autoReplyMode])
         except:
             return json.dumps([False,webwx.autoReplyMode])
+
+class TimeMsgApi():
+    
+    def GET(self):
+        pass
+    
+    def POST(self):
+        data = web.data()
+        data = data.decode('utf-8')
+        data = json.loads(data)
+        
+        msgName = data.get('msgName',None)
+        msgTime = data.get('msgTime',None)
+        msgWord = data.get('msgWord',None)
+        #msgTime 12,15
+        if msgName != None and msgTime != None and msgWord != None:
+            now_time = time.time()
+            ltime = time.localtime(now_time)
+            year = int(ltime.tm_year)
+            mon = int(ltime.tm_mon)
+            mday = int(ltime.tm_mday)
+            hour = int(msgTime.split(',')[0])
+            min = int(msgTime.split(',')[1])
+            sec = 0
+            timeC = datetime.datetime(year,mon,mday,hour,min,sec)
+            timestamp = time.mktime(timeC.timetuple())
+            print timestamp
+            q_timer.put(timerJob(timestamp,msgName,msgWord))
+            lastest_timer = int(timestamp)
+            print '入队列之前',q_timer
+            return json.dumps([msgName,msgTime,msgWord])
+    
 
 class GroupApi():
     '''
@@ -317,7 +350,7 @@ if __name__ == '__main__':
     workers.setDaemon(True)
     workers.start()
 
-    q_timer.join()
+  
 
     app = web.application(urls,globals())
     app.run()

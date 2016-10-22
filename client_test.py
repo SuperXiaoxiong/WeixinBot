@@ -16,6 +16,7 @@ class ClientTest(object):
         self.urltext = 'http://127.0.0.1:1234/text/'
         self.urlgrouplists = 'http://127.0.0.1:1234/groupLists/'
         self.urlgroup = 'http://127.0.0.1:1234/group/'
+        self.urlmsgtime = 'http://127.0.0.1:1234/timemsg/'
         
     def groupLists_post(self):
         data = { 'addName':u'刘宏伟',
@@ -80,12 +81,23 @@ class ClientTest(object):
         print 'client',
         print data.text
     
-    
-    
-           
+    def msg_time(self):
+        data = {
+            u'msgName':u'罗军',
+            u'msgTime':u'0,23',
+            u'msgWord':u'是不是23'
+            }
+        data = requests.post(url=self.urlmsgtime,data=json.dumps(data))
+        datas = json.loads(data.text)
+        for data in datas:
+            print data  
+        
 if __name__ == '__main__':
     
     client = ClientTest()
+    #client.groupLists_get()
     client.groupLists_get()
+    client.msg_time()
+    
     #client.group_post()
     #client.test_post()
