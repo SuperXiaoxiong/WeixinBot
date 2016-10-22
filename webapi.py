@@ -1,7 +1,7 @@
 #coding:utf-8
 '''
 Created on 2016年10月6日
-@author: 肖雄
+@author: knight110
 '''
 
 import web
@@ -19,6 +19,7 @@ q_timer = Queue.PriorityQueue()
 
 urls = (
     '/text/','ManageApi',
+    '/test/','Test'
     )
 
 
