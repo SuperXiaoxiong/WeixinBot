@@ -8,9 +8,7 @@ import subprocess
 import requests
 import threading
 import webbrowser
-from twisted.python import sendmsg
 
-import json
 
 class timerJob(object):
     '''
