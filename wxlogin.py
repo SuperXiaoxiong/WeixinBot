@@ -8,12 +8,68 @@ import subprocess
 import requests
 import threading
 import webbrowser
-from twisted.python import sendmsg
 
-import json
+
+def decode_list(data):
+        rv = []
+        for item in data:
+            if isinstance(item, str):
+                item = item.decode(sys.getfilesystemencoding())
+            elif isinstance(item, list):
+                item = decode_list(item)
+            elif isinstance(item, dict):
+                item = decode_dict(item)
+            rv.append(item)
+        return rv
+    
+def decode_dict(data):
+    rv = {}
+    for key, value in data.iteritems():
+        if isinstance(key, str):
+            key = key.decode(sys.getfilesystemencoding())
+        if isinstance(value, str):
+            value = value.decode(sys.getfilesystemencoding)
+        elif isinstance(value, list):
+            value = decode_list(value)
+        elif isinstance(value, dict):
+            value = decode_dict(value)
+        rv[key] = value
+    return rv
+    
+
+def encode_list(data):
+    rv = []
+    for item in data:
+        if isinstance(item, unicode):
+            item = item.encode('utf-8')
+        elif isinstance(item, list):
+            item = encode_list(item)
+        elif isinstance(item, dict):
+            item = encode_dict(item)
+        rv.append(item)
+    return rv
+
+
+def encode_dict(data):
+    rv = {}
+    for key, value in data.iteritems():
+        if isinstance(key, unicode):
+            key = key.encode('utf-8')
+        if isinstance(value, unicode):
+            value = value.encode('utf-8')
+        elif isinstance(value, list):
+            value = encode_list(value)
+        elif isinstance(value, dict):
+            value = encode_dict(value)
+        rv[key] = value
+    return rv
 
 class WXLogin(WebWeixin):
     
+    
+    
+
+
     def __init__(self):
         '''添加图形选项，如果-NG运行xdg-open生成二维码，否则命令行输出二维码'''
         super(WXLogin, self).__init__()
@@ -305,14 +361,15 @@ class WXLogin(WebWeixin):
                 print 'to ', nameingroup
                 self.sendMsg(nameingroup, word)
         else:
-            print '群',groupname,'不存在'
+            print u'群',groupname,u'不存在'
     
     def lsGroup(self):
         '''展示群列表'''
         groups = os.listdir('./grouplist')
-        print '当前群列表为：(',len(groups),')'
+        groups = decode_list(groups)
+        print u'当前群列表为：(',len(groups),')'
         if len(groups) == 0:
-            print '暂无群发列表'
+            print u'暂无群发列表'
         else:
             for f in groups:
                 print f
@@ -323,11 +380,11 @@ class WXLogin(WebWeixin):
         '''新建空群'''
         gpath = './grouplist/'
         if os.path.isfile(gpath + groupname):
-            print groupname, '该群已存在'
+            print groupname, u'该群已存在'
         else:
             tmpJsonFile = open(gpath + groupname,'w')
             tmpJsonFile.close()
-            print groupname, ' 建群成功'
+            print groupname, u' 建群成功'
         self.lsGroup()
         
     def rmgroup(self, groupname):
@@ -335,38 +392,41 @@ class WXLogin(WebWeixin):
         gpath = './grouplist/'
         if os.path.isfile(gpath + groupname):
             os.remove(gpath + groupname)
-            print '成功删除群 ',groupname
+            print u'成功删除群 ',groupname
         else:
-            print '群',groupname,'不存在'
+            print u'群',groupname,u'不存在'
         self.lsGroup()
+           
             
     def reNamegp(self, oldname, newname):
         '''群改名'''
         gpath = './grouplist/'
         if os.path.isfile(gpath + oldname):
             if os.path.isfile(gpath + newname):
-                print '新名称 ',newname,' 已存在，不可改成此名称'
+                print u'新名称 ',newname,u' 已存在，不可改成此名称'
             else:
                 os.rename(gpath + oldname, gpath + newname)
-                print oldname, ' 群名称已成功更改为 ',newname
+                print oldname, u' 群名称已成功更改为 ',newname
         else:
-            print '群',groupname,'不存在'
+            print u'群',oldname,u'不存在'
         self.lsGroup()
+    
     
     def lsUseringp(self, groupname):
         '''展示群成员'''
         if os.path.isfile('./grouplist/'+groupname):
             datalist = self.openGrouplist(groupname)
-            print groupname, ' 群成员为：(',len(datalist),')'
+            print groupname, u' 群成员为：(',len(datalist),')'
             if len(datalist) == 0:
-                print datalist, '此群中暂无成员'
+                print groupname, u'此群中暂无成员'
             else:
                 for nameingroup in datalist:
                     print nameingroup.encode('utf-8')
             return datalist
             '''返回群内成员名单'''
         else:
-            print '群',groupname,'不存在'
+            print u'群',groupname,u'不存在'
+            return []
             
     def addUseringp(self, groupname, datalist):
         '''
@@ -378,16 +438,17 @@ class WXLogin(WebWeixin):
             for userdata in datalist:
                 if self.getUSerID(userdata):
                     if userdata in templist:
-                        print userdata,' 已存在于此群中'
+                        print userdata,u' 已存在于此群中'
                     else:
                         templist.append(userdata)
                         self.storeGrouplist(groupname, templist)
-                        print userdata, ' 已添加成功'
+                        print userdata, u' 已添加成功'
                 else:
-                    print userdata,' 该用户不存在'
+                    print userdata,u' 该用户不存在'
         else:
-            print '群',groupname,'不存在'
+            print u'群',groupname,u'不存在'
         self.lsUseringp(groupname)
+    
     
     def rmUseringp(self, groupname, datalist):
         '''
@@ -402,13 +463,13 @@ class WXLogin(WebWeixin):
                         #print userdata,' 已存在于此群中'
                         templist.remove(userdata)
                         self.storeGrouplist(groupname, templist)
-                        print userdata, ' 已删除成功'
+                        print userdata, u' 已删除成功'
                     else:
-                        print userdata, ' 不在此群中'
+                        print userdata, u' 不在此群中'
                 else:
-                    print userdata,' 该用户不存在'
+                    print userdata,u' 该用户不存在'
         else:
-            print '群',groupname,'不存在'
+            print u'群',groupname,u'不存在'
         self.lsUseringp(groupname)
     
     def copyGroup(self, fromgp, togp):
@@ -421,9 +482,9 @@ class WXLogin(WebWeixin):
                 listto.extend(listfrom)
                 listto = list(set(listto))
                 self.storeGrouplist(togp, listto)
-                print '已成功将群 ', fromgp, ' 拷贝到群 ', togp ,' 中'
+                print u'已成功将群 ', fromgp, u' 拷贝到群 ', togp ,u' 中'
                 self.lsUseringp(togp)
             else:
-                print '群',togp,'不存在'
+                print u'群',togp,u'不存在'
         else:
-            print '群',fromgp,'不存在'
+            print u'群',fromgp,u'不存在'

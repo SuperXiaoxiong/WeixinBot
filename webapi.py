@@ -8,7 +8,7 @@ import web
 from wxlogin import *
 from pprint import pprint
 import threading
-import cmd
+
 
 web.config.debug = False
 
@@ -16,8 +16,8 @@ urls = (
     '/msg/','MsgApi',
     '/reply/','AutoReplyApi',
     '/groupLists/','GroupListsApi',
-    '/groupList','/GroupListApi',
-    '/contactList','ContactListApi',
+    '/group/','GroupApi',
+    '/contactList/','ContactListApi',
     )
 
 class AutoReplyApi():
@@ -42,18 +42,42 @@ class AutoReplyApi():
         except:
             return json.dumps([False,webwx.autoReplyMode])
 
-class GroupListsApi():
+class GroupApi():
     '''
-    GroupListsApi 对群进行增删改查操作
-    GET 返回json格式['群数',[name1,name2,...]]
-    POST 参数add(对应增加群srcname),del(删除群srcname),mvn(修改群srcname,dstname),返回json格式['操作boolean'.'群数',[name1,name2,...]]
+    GroupListApi 对单个群进行增删改查操作
+    GET 返回json格式[群名字,[name1,name2,...]]
+    POST 参数 groupName,参数add(name),del(name),rnm(name),cpy(name),返回json格式[groupname,[name1,name2,...]]
     '''
     def GET(self):
-        pass
-    
+        param = web.input(groupName = None)
+        group = webwx.lsUseringp(param.groupName)
+        if group != None:
+            return json.dumps([param.groupName,group])
+        else:
+            return None
     
     def POST(self):
-        pass
+        data = web.data()
+        data = data.decode('utf-8')
+        data = json.loads(data)
+    
+        groupName = data.get('groupName',None)
+        nameAdd = data.get('addName',None)
+        nameDel = data.get('delName',None)
+        
+        
+        if groupName != None:
+            if nameAdd != None:
+                webwx.addUseringp(groupName,nameAdd)
+            if nameDel != None:
+                webwx.rmUseringp(groupName,nameDel)
+
+            
+            group = webwx.lsUseringp(groupName)
+            res = [len(group),group]
+            return json.dumps(res)
+        else:
+            return None
     
 
 
@@ -64,18 +88,44 @@ class ContactListApi():
     pass
 
 
-class GroupListApi():
+class GroupListsApi():
     '''
-    GroupListApi 对单个群进行增删改查操作
-    GET 返回json格式['人数',[name1,name2,...]]
-    POST 参数 groupName,参数add(name),del(name),返回json格式['操作boolean',groupname,[name1,name2,...]]
+    GroupListsApi 对群进行增删改查操作
+    GET 返回json格式['群数',[name1,name2,...]]
+    POST 参数add(对应增加群srcname),del(删除群srcname),mvn(修改群srcname,dstname),返回json格式['群数',[name1,name2,...]]
     '''
     def GET(self):
-        pass
+        groups = webwx.lsGroup()
+        res = [len(groups),groups]
+        return json.dumps(res)
     
     def POST(self):
-        pass
+        data = web.data()
+        data = data.decode('utf-8')
+        data = json.loads(data)
     
+        nameAdd = data.get('addName',None)
+        nameDel = data.get('delName',None)
+        
+        srcRnm = data.get('srcRnm',None)
+        dstRnm = data.get('dstRnm',None)
+        
+        srcCpy = data.get('srcCpy',None)
+        dstCpy = data.get('dstCpy',None)
+        
+        if nameAdd != None:
+            webwx.newgroup(nameAdd)
+        if nameDel != None:
+            webwx.rmgroup(nameDel)
+        if srcRnm != None and dstRnm != None:
+            webwx.reNamegp(srcRnm,dstRnm)
+        if srcCpy != None and dstRnm != None:
+            webwx.copyGroup(srcCpy,dstCpy)
+        
+        groups = webwx.lsGroup()
+        res = [len(groups),groups]
+        return json.dumps(res,ensure_ascii=False)
+       
         
 class MsgApi():
             
