@@ -64,6 +64,19 @@ def encode_dict(data):
         rv[key] = value
     return rv
 
+
+class timerJob(object):
+    '''
+    定时消息类，包括时间轴，收件人和发送的信息
+    '''
+    def __init__(self,priority,name,word):
+        self.priority = priority
+        self.name = name
+        self.word = word
+        return
+    def __cmp__(self,other):
+        return cmp(self.priority,other.priority)
+    
 class WXLogin(WebWeixin):
     
     
@@ -267,8 +280,8 @@ class WXLogin(WebWeixin):
             groupName = None
             content = None
             sendtime = None
-            flagtime = time.time()
-            print flagtime
+            #flagtime = time.time()
+            #print flagtime
             srcName = self.getUserRemarkName(msg['FromUserName'])
             dstName = self.getUserRemarkName(msg['ToUserName'])
      
@@ -320,7 +333,13 @@ class WXLogin(WebWeixin):
                 raw_msg = {
                     'raw_msg': msg, 'message': u'[*] 该消息类型为: %d，可能是表情，图片, 链接或红包' % msg['MsgType']}
                 #self._showMsg(raw_msg)
-    
+    def sendAddfriend(self,toname):
+        '''
+        作用：发送好友添加请求
+        参数：要添加的微信号
+        返回值：成功或者失败
+        '''
+        pass
     def openGrouplist(self, groupname):
         '''
         作用：打开群列表
