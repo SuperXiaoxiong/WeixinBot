@@ -108,7 +108,9 @@ class WXLogin(WebWeixin):
             data = response.read()
             data = data.decode('utf-8')
             if jsonfmt:
-                return json.loads(data)
+                if data != None :
+                    data = json.loads(data)
+                    return data
             return data
 
     
@@ -256,7 +258,8 @@ class WXLogin(WebWeixin):
                 }
         try:
             res = requests.post(url=url,data=json.dumps(data))
-            res = json.loads(res.text)
+            if res.text != None :
+                res = json.loads(res.text)
             return res['text']
         except:
             return u"让我一个人静静 T_T..."   
