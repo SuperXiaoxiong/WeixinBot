@@ -76,6 +76,8 @@ class timerJob(object):
         return
     def __cmp__(self,other):
         return cmp(self.priority,other.priority)
+
+
     
 class WXLogin(WebWeixin):
     
@@ -108,9 +110,9 @@ class WXLogin(WebWeixin):
             data = response.read()
             data = data.decode('utf-8')
             if jsonfmt:
-                if data != None :
-                    data = json.loads(data)
-                    return data
+                #if data != None :
+                data = json.loads(data)
+                return data
             return data
 
     
@@ -126,8 +128,7 @@ class WXLogin(WebWeixin):
         data = response.read()
         #print data
         QRCODE_PATH = self._saveFile('qrcode.jpg', data, '_showQRCodeImg')
-        print sys.platform
-        print self.graph
+        
         
         if sys.platform.startswith('win'):
             #subprocess.call(['open',QRCODE_PATH])
@@ -233,7 +234,7 @@ class WXLogin(WebWeixin):
             if not self.waitForLogin():
                 continue
                 print u'[*] 请在手机上点击确认以登录 ... '
-            if not self.waitForLogin(0):
+            if not self.waitForLogin():
                 continue
             break
 
@@ -258,8 +259,7 @@ class WXLogin(WebWeixin):
                 }
         try:
             res = requests.post(url=url,data=json.dumps(data))
-            if res.text != None :
-                res = json.loads(res.text)
+            res = json.loads(res.text)
             return res['text']
         except:
             return u"让我一个人静静 T_T..."   

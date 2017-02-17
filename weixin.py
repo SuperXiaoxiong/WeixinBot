@@ -167,7 +167,7 @@ class WebWeixin(object):
         QRCODE_PATH = self._saveFile('qrcode.jpg', data, '_showQRCodeImg')
         os.startfile(QRCODE_PATH)
 
-    def waitForLogin(self, tip=1):
+    def waitForLogin(self, tip=10):
         time.sleep(tip)
         url = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?tip=%s&uuid=%s&_=%s' % (
             tip, self.uuid, int(time.time()))
@@ -529,10 +529,12 @@ class WebWeixin(object):
             logging.debug(json.dumps(dic, indent=4))
         return dic['BaseResponse']['Ret'] == 0
 
-    def _saveFile(self, filename, data, api=None):
+    def _saveFile(self, filename, data, api=' '):
         fn = filename
-        if self.saveSubFolders[api]:
+        if api != ' ':
             dirName = os.path.join(self.saveFolder, self.saveSubFolders[api])
+        else:
+            dirName = os.path.join(self.saveFolder)
             if not os.path.exists(dirName):
                 os.makedirs(dirName)
             fn = os.path.join(dirName, filename)
@@ -855,20 +857,20 @@ class WebWeixin(object):
                         line = line.replace('\n', '')
                         self._echo('-> ' + name + ': ' + line)
                         if self.webwxsendmsg(line, id):
-                            print ' [成功]'
+                            print u' [成功]'
                         else:
-                            print ' [失败]'
+                            print u' [失败]'
                         time.sleep(1)
             else:
                 if self.webwxsendmsg(word, id):
-                    print '[*] 消息发送成功'
+                    print u'[*] 消息发送成功'
                     logging.debug('[*] 消息发送成功')
                 else:
-                    print '[*] 消息发送失败'
-                    logging.debug('[*] 消息发送失败')
+                    print u'[*] 消息发送失败'
+                    logging.debug(u'[*] 消息发送失败')
         else:
-            print '[*] 此用户不存在'
-            logging.debug('[*] 此用户不存在')
+            print u'[*] 此用户不存在'
+            logging.debug(u'[*] 此用户不存在')
 
     def sendMsgToAll(self, word):
         for contact in self.ContactList:
