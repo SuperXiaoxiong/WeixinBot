@@ -4,6 +4,8 @@ Created on 2017年2月15日
 @author: superxiaoxiong
 '''
 
+
+
 import web
 from WeixinBot import wxlogin 
 import threading
@@ -116,16 +118,49 @@ class index:
         '''
         如果没有登录，重定向到登录页面
         如果登录，
-            1.如果serialnum为-1，代表没有微信进程加入wxlogin进程，static存储二维码并按username存储，返回给用户，稍后返回聊天记录
+            1.如果serialnum为-1，代表没有微信进程加入wxlogin进程，static存储二维码并按username存储，返回给用户，
+            用户扫描二维码稍后返回聊天记录
             2.如果serialnum不为-1，代表进程存在，稍后返回聊天记录
         '''
         if logged():
             render = create_render(session.privilege)           
-            #if session.user.serialnum == -1:
-            '''
-                webwx = WXLoginTh(session.user.serialnum)
+            if session.user.serialnum == -1:
+                serialnum = len(wx_thread)
+                webwx = WXLoginTh(serialnum)
+                webwx.getUUID()
+                session.uuid = webwx.uuid
                 webwx.genQRCode()
-                '''
+                db1.update('example_users', web.db.sqlwhere({'user':session.user.user}), serialnum=serialnum)
+                session.user.serialnum = serialnum
+                return "%s" % (render.index(session.user.user, './static/qrcode' + str(serialnum) +'.jpg', status='ok'))
+            
+            else:
+                
+                webwx = WXLoginTh(session.user.serialnum)
+                webwx.uuid = session.uuid
+                while True:
+                    print u'[*] 请使用微信扫描二维码以登录 ... '
+                    if not webwx.waitForLogin():
+                        continue
+                        print u'[*] 请在手机上点击确认以登录 ... '
+                    if not webwx.waitForLogin():
+                        continue
+                    break
+                
+                webwx._run(u'[*] 正在登录 ... ', webwx.login)
+                webwx._run(u'[*] 微信初始化 ... ', webwx.webwxinit)
+                webwx._run(u'[*] 开启状态通知 ... ', webwx.webwxstatusnotify)
+                webwx._run(u'[*] 获取联系人 ... ', webwx.webwxgetcontact)
+                webwx._echo(u'[*] 应有 %s 个联系人，读取到联系人 %d 个' %
+                           (webwx.MemberCount, len(webwx.MemberList)))
+                webwx._echo(u'[*] 共有 %d 个群 | %d 个直接联系人 | %d 个特殊账号 ｜ %d 公众号或服务号' % (len(webwx.GroupList),
+                                                                                 len(webwx.ContactList), len(webwx.SpecialUsersList), len(webwx.PublicUsersList)))
+                session.user.key = '1'
+                t_listen = threading.Thread(target=webwx.listenMsgMode,args = ())
+                t_listen.start()
+                serialnum = len(wx_thread)
+                wx_thread.append(t_listen)
+                return "%s" % (render.index(session.user.user, 'none', status='nice'))
             '''
                 初步思路，生成二维码，将二维码传回，页面传值wx对象
                 '''
@@ -148,7 +183,7 @@ class index:
                 else:
                     return "%s" % (render.index(session.user.user, status = 'no', url =''))
                 '''
-            return "%s" % (render.index(session.user.user, './static/qrcode.jpg', status='ok'))
+            #return "%s" % (render.index(session.user.user, './static/qrcode.jpg', status='ok'))
         
         else:
             render = create_render(2)
