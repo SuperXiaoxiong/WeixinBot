@@ -167,7 +167,7 @@ class WebWeixin(object):
         QRCODE_PATH = self._saveFile('qrcode.jpg', data, '_showQRCodeImg')
         os.startfile(QRCODE_PATH)
 
-    def waitForLogin(self, tip=10):
+    def waitForLogin(self, tip=3):
         time.sleep(tip)
         url = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?tip=%s&uuid=%s&_=%s' % (
             tip, self.uuid, int(time.time()))
