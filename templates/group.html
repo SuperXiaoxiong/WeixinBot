@@ -1,0 +1,42 @@
+$def with (list0,list1,list2)
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title></title>
+</head>
+<table border="1">
+<tr>
+<td>级别０</td>
+<td>$list0</td>
+</tr>
+<tr>
+<td>级别１</td>
+<td>$list1</td>
+</tr>
+<tr>
+<td>级别２</td>
+<td>$list2</td>
+</tr>
+</table>
+
+<form action=/group method=POST>
+	<table id="login">
+		<tr>
+			<td>用户: </td>
+			<td><input type=text name='username'></td>
+			<td>修改级别为: </td>
+			<td>
+			<select name="choose_list">
+  			<option value="0">0</option>
+  			<option value="1">1</option>
+  			<option value="2">2</option>
+			</select>
+			</td>
+			<td><input type=submit value=确认修改></td>
+		</tr>
+	</table>
+</form>
+

@@ -15,14 +15,17 @@ import threading
 import os
 import hashlib
 import time
+import MySQLdb
+import re
 
 class WXLoginTh(wxlogin.WXLogin):
     
-    def __init__(self, serialnum):
+    def __init__(self, serialnum, wx_id):
         super(WXLoginTh, self).__init__()
         
         self.serialnum =serialnum
         self.saveFolder = os.path.join(os.getcwd(), 'static')
+        self.wx_id = wx_id
         
     def genQRCode(self):
         '''
@@ -73,6 +76,21 @@ class WXLoginTh(wxlogin.WXLogin):
         self._run(u'[*] 进行同步线路测试 ... ', self.testsynccheck)
         playWeChat = 0
         redEnvelope = 0
+        
+          #--------数据库添加-------
+        '''
+                    连接mysql数据库
+        '''
+        self.conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd = '',db='webuser')
+        self.cur = self.conn.cursor()
+        self.conn.set_character_set('utf8')
+        self.cur.execute('SET NAMES utf8;') 
+        self.cur.execute('SET CHARACTER SET utf8;')
+        self.cur.execute('SET character_set_connection=utf8;')
+        print '连接数据库成功！'
+        #----------------------
+        
+        
         while True:
             print 'is on job ' + str(self.serialnum)
             self.lastCheckTs = time.time()
@@ -118,7 +136,63 @@ class WXLoginTh(wxlogin.WXLogin):
                     r = self.webwxsync()
             time.sleep(1)
             if (time.time() - self.lastCheckTs) <= 20:
-                time.sleep(time.time() - self.lastCheckTs)    
+                time.sleep(time.time() - self.lastCheckTs)  
+                
+          
+
+    def _showMsg(self, message):
+
+        srcName = None
+        dstName = None
+        groupName = None
+        content = None
+
+        msg = message
+
+        if msg['raw_msg']:
+            srcName = self.getUserRemarkName(msg['raw_msg']['FromUserName'])
+            dstName = self.getUserRemarkName(msg['raw_msg']['ToUserName'])
+            content = msg['raw_msg']['Content']
+            
+            # content = msg['raw_msg']['Content'].replace(
+            # '&lt;', '<').replace('&gt;', '>')
+            message_id = msg['raw_msg']['MsgId']
+           
+            if msg['raw_msg']['FromUserName'][:2] == '@@':
+                # 接收到来自群的消息
+                if re.search(":<br/>", content, re.IGNORECASE):
+                    [people, content] = content.split(':<br/>')
+                    groupName = srcName
+                    srcName = self.getUserRemarkName(people)
+                    dstName = 'GROUP'
+                else:
+                    groupName = srcName
+                    srcName = 'SYSTEM'
+            elif msg['raw_msg']['ToUserName'][:2] == '@@':
+                # 自己发给群的消息
+                groupName = dstName
+                dstName = 'GROUP'
+
+            # 收到了红包
+            if content == u'收到红包，请在手机上查看':
+                msg['message'] = content
+
+            # 指定了消息内容
+            if 'message' in msg.keys():
+                content = msg['message']
+               
+        if groupName != None:
+            print '%s |%s| %s -> %s: %s' % (message_id, groupName.strip(), srcName.strip(), dstName.strip(), content)
+        else:
+            # reload(sys)
+            # sys.setdefaultencoding('utf-8')
+            print '%s %s -> %s: %s' % (message_id, srcName.strip(), dstName.strip(), content)
+            sql = "insert into messagelist(srcName,dstName,content,wx_id) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "');"
+            self.cur.execute(sql)
+            #self.cur.close()
+            self.conn.commit()
+            print '插入成功！'
+            
             
 urls = (
     '/(.*)/','redirect',
@@ -126,6 +200,8 @@ urls = (
     '/logout', 'logout',
     '/regist','regist',
     '/index','index',
+    '/group','group',
+    '/messagelist','messagelist',
     )
 
 def notfound():
@@ -191,9 +267,7 @@ class redirect:
         #print path
 
 
-'''
 
-'''
 class index:
     
     def GET(self):
@@ -208,7 +282,7 @@ class index:
             render = create_render(session.privilege)           
             if session.user.serialnum == -1:
                 serialnum = len(wx_thread)
-                webwx = WXLoginTh(serialnum)
+                webwx = WXLoginTh(serialnum, session.user.id)
                 webwx.getUUID()
                 session.uuid = webwx.uuid
                 webwx.genQRCode()
@@ -222,7 +296,7 @@ class index:
                 不为default说明线程已经分配，查看wx_thread[serialnum]线程状态，返回线程状态
                 '''
                 if session.user.wxkey == 'default':
-                    webwx = WXLoginTh(session.user.serialnum)
+                    webwx = WXLoginTh(session.user.serialnum, session.user.id)
                     webwx.uuid = session.uuid
                     while True:
                         print u'[*] 请使用微信扫描二维码以登录 ... '
@@ -247,6 +321,45 @@ class index:
                     t_listen.start()
                     serialnum = len(wx_thread)
                     wx_thread.append(t_listen)
+                    
+                    
+                    '''
+                    获取用户好友列表
+                    '''
+                    frienduserlist = webwx.ContactList
+                    num = 1
+                    for tempuser in frienduserlist:
+                        '''
+                        更新好友列表
+                        '''
+                        temp2 = db1.transaction()
+                        tempnick=tempuser['NickName']
+                        tempmark=tempuser['RemarkName']
+                        #print tempmark
+                        try:
+                            user_frilist = {
+                                'markname':tempmark,
+                                'wx_id':session.user.id
+                                }
+                            #db1.insert('friend_list',uid=tempuid,markname=tempmark,nickname=tempnick)
+                            
+                            resultfrilist = db1.select('friend_list',  where=web.db.sqlwhere(user_frilist) )
+                            #print len(resultfrilist)
+                            #print tempmark
+                            #数据库查询
+                            if len(resultfrilist) == 1:
+                                #该用户存在于好友列表
+                                db1.update('friend_list',where=web.db.sqlwhere(user_frilist),nickname=tempnick)
+                            else:
+                                #print tempmark
+                                #该用户未存在
+                                db1.insert('friend_list',markname=tempmark,nickname=tempnick,wx_id=session.user.id)
+                            
+                        except :
+                            temp2.rollback()
+                        else:
+                            temp2.commit()
+                    
                     
                     session.user.wxkey = random_str()
                     db1.update('example_users', web.db.sqlwhere({'user':session.user.user}), serialnum=serialnum, wxkey=session.user.wxkey)
@@ -399,9 +512,104 @@ class regist:
                 return "%s" % (render.login())
             
             
+class group: 
+    def GET(self):
+        '''
+        如果没有登录，重定向到登录页面
+        如果登录，a
             
+        '''
+        if logged():
+            render = create_render(session.privilege)     
+
+            user_frilist0 = {
+                'privilege':0,
+                'wx_id':session.user.id
+            }
+            tempresultlist0 = db1.select('friend_list',what='markname',where=web.db.sqlwhere(user_frilist0) )
+            restr0=''
+            for x0 in tempresultlist0:
+                restr0 = restr0 +' '+ x0.markname
             
+        
+            user_frilist1 = {
+                'privilege':1,
+                'wx_id':session.user.id
+                }            
+            tempresultlist1 = db1.select('friend_list',what='markname',where=web.db.sqlwhere(user_frilist1))
+            restr1=''
+            for x1 in tempresultlist1:
+                restr1 = restr1 +' '+ x1.markname
+            
+            user_frilist2 = {
+                'privilege':2,
+                'wx_id':session.user.id
+                    }            
+            
+            tempresultlist2 = db1.select('friend_list',what='markname',where=web.db.sqlwhere(user_frilist2))
+            restr2=''
+            for x2 in tempresultlist2:
+                restr2 = restr2 +' '+ x2.markname
+            return render.group(restr0,restr1,restr2)
+        else:
+            render = create_render(2)
+            return "%s" % (render.login())
+    def POST(self):
+        username = web.input().username
+        listvalue = web.input().choose_list
+        temp2 = db1.transaction()
+        
+        try:
+            user_frilist = {
+                'wx_id':session.user.id,
+                'markname':username
+            }
+            #db1.insert('friend_list',uid=tempuid,markname=tempmark,nickname=tempnick)
+                                
+            resultfrilist = db1.select('friend_list',  where=web.db.sqlwhere(user_frilist) )
+            #print len(resultfrilist)
+            #print tempmark
+            #数据库查询
+            if len(resultfrilist) == 1:
+                #该用户已存在
+                #print username
+                db1.update('friend_list',where=web.db.sqlwhere(user_frilist),privilege=listvalue)
+                #print listvalue
+            else:
+                pass
+                                
+        except :
+            temp2.rollback()
+        else:
+            temp2.commit()
+            
+        web.seeother('/group')        
+            
+class messagelist: 
+    def GET(self):
+        '''
+        如果没有登录，重定向到登录页面
+        如果登录，a
+            
+        '''
+        if logged():
+            render = create_render(session.privilege)   
+            
+            user_frilist0 = {
+                'wx_id':session.user.id
+            }
+         
+            tempresultlist = db1.select('messagelist',what='message_id,srcName,dstName,content',where=web.db.sqlwhere(user_frilist0))
+            restr=''
+            for x in tempresultlist:
+                restr = restr +'+'+str(x.message_id) + ':'+ x.srcName + '->'+x.dstName + ':'+ x.content
+            return render.messagelist(restr) 
+        else:
+            render = create_render(2)
+            return "%s" % (render.login())
                 
+        
+                        
 db1 = web.database(dbn = 'mysql', db='webuser', user='root',pw='')  
 wx_thread = []  
 if __name__ == "__main__":
