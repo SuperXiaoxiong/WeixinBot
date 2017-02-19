@@ -1,0 +1,80 @@
+window安
+注意用service.msi启动服务
+需要安装mysqldb
+
+
+安装mysql 
+sudo service mysql start 
+mysql -u root -p
+登录
+
+创建数据库
+create database webuser;
+use webuser
+
+
+创建数据库
+用户id 自动增长，用户名和密码，用户权限这些不为null
+还需要用户key, 随机生成，
+密码和key应该是用md5加密的
+
+数据库中不要有字段 pass ，会被识别为关键字
+
+create table example_users(
+	id int(12) not null auto_increment,
+	user varchar(50) not null,
+	passwd varchar(50) not null,
+	privilege int not null default 0,
+	wxkey char(25),
+	serialnum int  default -1,
+	primary key(id)
+	);
+
+设置user 用户名不可以重复
+alter table example_users add unique index(user);
+添加唯一索引
+
+修改serialnum模块默认值
+alter table example_users alter column serialnum set default -1;
+alter table example_users alter column wxkey set default 'default';
+
+修改表数据 update example_users set serialnum=-1 where id=1 or id=4;
+
+添加一条数据，
+INSERT INTO example_users(user, passwd) VALUES ('admin'
+,'admin');
+
+show create table TableName 或 show full columns from tableName
+建立utf-8编码表
+create table zhongwen_user
+(
+id int,  
+Name char(15) not null check(user_Name !=''),
+ 
+  primary key(id)         
+ 
+)engine=innodb default charset=utf8 auto_increment=1;
+最开始用MySQL Administrator建数据库的时候，表缺省是InnoDB类型，也就没有在意。后来用Access2MySQL导数据的时候发现只能导成 MyISAM类型的表，不知道这两种类型有什么区别，就去查了查。原来是MyISAM类型不支持事务处理等高级处理，而InnoDB类型支持。 MyISAM类型的表强调的是性能，其执行数度比InnoDB类型更快，但是不提供事务支持，而InnoDB提供事务支持已经外部键等高级数据库功能。这 样就可以根据数据表不同的用处是用不同的存储类型。
+查看表的 字符集设置
+show create table t1;
+ 
+
+create table friend_list(
+    id int(12) not null auto_increment,
+    markname varchar(50),
+    nickname varchar(50),
+    privilege int not null default 0,
+    wx_id  int(12),   
+    primary key(id),
+    foreign key(wx_id) references example_users(id)  
+)engine=innodb default charset=utf8 auto_increment=1;
+
+create table messagelist(
+message_id int(12) not null auto_increment,
+srcName varchar(50),
+dstName varchar(50), 
+content varchar(200),
+primary key(message_id),
+wx_id  int(12),
+foreign key(wx_id) references example_users(id)
+)engine=innodb default charset=utf8 auto_increment=1;

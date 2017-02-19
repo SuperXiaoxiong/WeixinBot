@@ -5,8 +5,9 @@ Created on 2017年2月15日
 '''
 
 '''
-二维码获取出现逻辑问题
-
+TODO :API
+    :发送信息
+ :自动回复
 '''
 
 import web
@@ -282,6 +283,7 @@ class index:
             render = create_render(session.privilege)           
             if session.user.serialnum == -1:
                 serialnum = len(wx_thread)
+                wx_thread.append(serialnum)
                 webwx = WXLoginTh(serialnum, session.user.id)
                 webwx.getUUID()
                 session.uuid = webwx.uuid
@@ -319,8 +321,8 @@ class index:
                     
                     t_listen = threading.Thread(target=webwx.listenMsgMode,args = ())
                     t_listen.start()
-                    serialnum = len(wx_thread)
-                    wx_thread.append(t_listen)
+                    
+                    wx_thread[session.user.serialnum] = t_listen
                     
                     
                     '''
@@ -362,7 +364,7 @@ class index:
                     
                     
                     session.user.wxkey = random_str()
-                    db1.update('example_users', web.db.sqlwhere({'user':session.user.user}), serialnum=serialnum, wxkey=session.user.wxkey)
+                    db1.update('example_users', web.db.sqlwhere({'user':session.user.user}), serialnum=session.user.serialnum, wxkey=session.user.wxkey)
                     return "%s" % (render.index(session.user.user, 'none', status='nice'))
                 
                 else:
@@ -413,7 +415,7 @@ class login:
     
     def GET(self):
         '''
-        如果已经登录，重定向到login_double.html
+        如果已经登录，重定向到index.html
         没有登录，重定向到login.html
         '''
         if logged():
@@ -584,7 +586,8 @@ class group:
             temp2.commit()
             
         web.seeother('/group')        
-            
+
+           
 class messagelist: 
     def GET(self):
         '''
