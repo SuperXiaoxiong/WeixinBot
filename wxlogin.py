@@ -91,15 +91,27 @@ class WXLogin(WebWeixin):
         self.graph = 'true'
         self.q = multiprocessing.Queue()
 
-        self.loggerRetcode = logging.getLogger('test_logger')        
-        formatter = logging.Formatter('%(asctime)s %(filename)s %(name)s %(message)s ' )
-        sh = logging.FileHandler('tmp.log',mode='a',encoding=sys.getfilesystemencoding())
-        sh.setFormatter(formatter)
-        sh.setLevel(logging.INFO)
-        self.loggerRetcode.addHandler(sh)
-        self.loggerRetcode.setLevel(logging.INFO)
+        #self.loggerRetcode = logging.getLogger('test_logger')        
+        #formatter = logging.Formatter('%(asctime)s %(filename)s %(name)s %(message)s ' )
+        #sh = logging.FileHandler('tmp.log',mode='a',encoding=sys.getfilesystemencoding())
+        #sh.setFormatter(formatter)
+        #sh.setLevel(logging.INFO)
+        #self.loggerRetcode.addHandler(sh)
+        #self.loggerRetcode.setLevel(logging.INFO)
        
     def _post(self, url, params, jsonfmt=True):
+        if jsonfmt:
+            response = self.req.post(url, data = json.dumps(params),headers={'ContentType':'application/json; charset=UTF-8'})
+        else:
+            response = self.req.post(url=url, data=urllib.urlencode(params))
+        data = response.content
+        data = data.decode('utf-8')
+        if jsonfmt:
+            #if data != None :
+            data = json.loads(data)
+            return data
+        return data
+        '''
             if jsonfmt:
                 request = urllib2.Request(url=url, data=json.dumps(params))
                 request.add_header(
@@ -114,7 +126,7 @@ class WXLogin(WebWeixin):
                 data = json.loads(data)
                 return data
             return data
-
+        '''
     
     def genQRCode(self):
         '''生成二维码，添加在linux平台下调用xdg打开二维码'''
@@ -123,9 +135,13 @@ class WXLogin(WebWeixin):
             't': 'webwx',
             '_': int(time.time()),
         }
+        '''
         request = urllib2.Request(url=url, data=urllib.urlencode(params))
         response = urllib2.urlopen(request)
         data = response.read()
+        '''
+        response = self.req.post(url=url, data=urllib.urlencode(params))
+        data = response.content
         #print data
         QRCODE_PATH = self._saveFile('qrcode.jpg', data, '_showQRCodeImg')
         
@@ -154,7 +170,7 @@ class WXLogin(WebWeixin):
             dic = self._post(url, {})
         except Exception,e:
             print str(e)
-            self.loggerRetcode.warning(str(e))
+            #self.loggerRetcode.warning(str(e))
             return self.webwxgetcontact()
         else:   
             self.MemberCount = dic['MemberCount']
@@ -197,23 +213,30 @@ class WXLogin(WebWeixin):
         
         try:
             #data = self._get(url)
+            
+            '''
             request = urllib2.Request(url=url)
             request.add_header(
                     'ContentType', 'application/json; charset=UTF-8')
             response = urllib2.urlopen(request, timeout=30)
             data = response.read()
-
-        except urllib2.URLError, e:  
-            print str(e)
-            self.loggerRetcode.warning( str(e))
-            print  ' urllib2.URLError  retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost
-            self.loggerRetcode.warning( 'retcode : ' +'-1'+  'selector: '   + '-1' + ' synchost : ' + self.syncHost)
-            return [-1, -1]
+            '''
+            
+            response = self.req.post(url=url, headers={'ContentType':'application/json; charset=UTF-8'})
+            data = response.content
+            '''
+            except urllib2.URLError, e:  
+                print str(e)
+                #self.loggerRetcode.warning( str(e))
+                print  ' urllib2.URLError  retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost
+                #self.loggerRetcode.warning( 'retcode : ' +'-1'+  'selector: '   + '-1' + ' synchost : ' + self.syncHost)
+                return [-1, -1]
+            '''
         except  Exception,e:
             print str(e)
-            self.loggerRetcode.warning( str(e))
+            #self.loggerRetcode.warning( str(e))
             print ' 222 retcode : ' +'-1',  'selector: '   + '-1' , ' synchost : ' + self.syncHost
-            self.loggerRetcode.warning( 'retcode : ' +'-1' +  'selector: '   + '-1' +  ' synchost : ' + self.syncHost)
+            #self.loggerRetcode.warning( 'retcode : ' +'-1' +  'selector: '   + '-1' +  ' synchost : ' + self.syncHost)
             return [-1, -1]
             
         pm = re.search(
@@ -269,10 +292,10 @@ class WXLogin(WebWeixin):
         self.autoReplyMode = auto
         if auto:
             print u'自动回复开启'
-            self.loggerRetcode.info(u'自动回复开启')
+            #self.loggerRetcode.info(u'自动回复开启')
         else:
             print u'自动回复关闭'
-            self.loggerRetcode.info(u'自动回复关闭')
+            #self.loggerRetcode.info(u'自动回复关闭')
     
     
     def handleMsg(self, r):
@@ -355,7 +378,7 @@ class WXLogin(WebWeixin):
             tmpJsonFile = open(gpath + groupname,'r')
             tmpplist = json.load(tmpJsonFile)
         except BaseException,e:
-            self.loggerRetcode(str(e))
+            #self.loggerRetcode(str(e))
             tmpplist = []
         finally:
             tmpJsonFile.close()

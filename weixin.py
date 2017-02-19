@@ -2,8 +2,8 @@
 # coding: utf-8
 import qrcode
 import urllib
-import urllib2
-import cookielib
+#import urllib2
+#import cookielib
 import requests
 import xml.dom.minidom
 import json
@@ -116,11 +116,14 @@ class WebWeixin(object):
         self.TimeOut = 20  # 同步最短时间间隔（单位：秒）
         self.media_count = -1
 
+        self.req = requests.Session()
+        self.req.headers.update( {'User-Agent':self.user_agent})
+        '''
         self.cookie = cookielib.CookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cookie))
         opener.addheaders = [('User-agent', self.user_agent)]
         urllib2.install_opener(opener)
-
+        '''
     def loadConfig(self, config):
         if config['DEBUG']:
             self.DEBUG = config['DEBUG']
@@ -313,17 +316,19 @@ class WebWeixin(object):
         return dic['ContactList']
 
     def testsynccheck(self):
-        SyncHost = [
-            
+        SyncHost = [   
             'webpush.wx2.qq.com',
             'webpush.wx.qq.com',
             'webpush.weixin.qq.com',
+            'webpush.weixin2.qq.com',
+            'webpush2.wx.qq.com',
+            'webpush2.wx2.qq.com',
             'webpush2.weixin.qq.com',
+            'webpush2.weixin2.qq.com',
             'webpush.wechat.com',
             'webpush1.wechat.com',
             'webpush2.wechat.com',
-            'webpush1.wechatapp.com',
-            'webpush.wechatapp.com'
+            
         ]
         for host in SyncHost:
             self.syncHost = host
@@ -334,7 +339,10 @@ class WebWeixin(object):
                 pass
                 '''
             [retcode, selector] = self.synccheck()
+            print retcode, selector
             if retcode == '0':
+                print 'xuanzejiedian ' + host
+                
                 return True
         return False
 
@@ -535,13 +543,13 @@ class WebWeixin(object):
             dirName = os.path.join(self.saveFolder, self.saveSubFolders[api])
         else:
             dirName = os.path.join(self.saveFolder)
-            if not os.path.exists(dirName):
-                os.makedirs(dirName)
-            fn = os.path.join(dirName, filename)
-            logging.debug('Saved file: %s' % fn)
-            with open(fn, 'wb') as f:
-                f.write(data)
-                f.close()
+        if not os.path.exists(dirName):
+            os.makedirs(dirName)
+        fn = os.path.join(dirName, filename)
+        logging.debug('Saved file: %s' % fn)
+        with open(fn, 'wb') as f:
+            f.write(data)
+            f.close()
         return fn
 
     def webwxgeticon(self, id):
@@ -812,6 +820,7 @@ class WebWeixin(object):
         playWeChat = 0
         redEnvelope = 0
         while True:
+            
             self.lastCheckTs = time.time()
             [retcode, selector] = self.synccheck()
             if self.DEBUG:
@@ -1022,6 +1031,12 @@ class WebWeixin(object):
         return result
 
     def _get(self, url, api=None):
+        
+        self.req.headers.update({'Referer':'https://wx.qq.com/'})
+        response = self.req.get(url)
+        return response.content
+    
+        '''
         request = urllib2.Request(url=url)
         request.add_header('Referer', 'https://wx.qq.com/')
         if api == 'webwxgetvoice':
@@ -1032,8 +1047,14 @@ class WebWeixin(object):
         data = response.read()
         logging.debug(url)
         return data
+        '''
 
     def _post(self, url, params, jsonfmt=True):
+        if jsonfmt:
+            response = self.req.post(url, data = json.dumps(params),headers={'ContentType':'application/json; charset=UTF-8'})
+        else:
+            response = self.req.post(url=url, data=urllib.urlencode(params))
+        '''
         if jsonfmt:
             request = urllib2.Request(url=url, data=json.dumps(params))
             request.add_header(
@@ -1042,6 +1063,11 @@ class WebWeixin(object):
             request = urllib2.Request(url=url, data=urllib.urlencode(params))
         response = urllib2.urlopen(request)
         data = response.read()
+        if jsonfmt:
+            return json.loads(data, object_hook=_decode_dict)
+        return data
+        '''
+        data = response.content
         if jsonfmt:
             return json.loads(data, object_hook=_decode_dict)
         return data
@@ -1104,8 +1130,6 @@ if sys.stdout.encoding == 'cp936':
 if __name__ == '__main__':
 
     logger = logging.getLogger(__name__)
-    import coloredlogs
-    coloredlogs.install(level='DEBUG')
-
+  
     webwx = WebWeixin()
     webwx.start()
