@@ -298,67 +298,15 @@ class WXLogin(WebWeixin):
             #self.loggerRetcode.info(u'自动回复关闭')
     
     
-    def handleMsg(self, r):
-        for msg in r['AddMsgList']:
-            #print msg
-            srcName = None
-            dstName = None
-            groupName = None
-            content = None
-            sendtime = None
-            #flagtime = time.time()
-            #print flagtime
-            srcName = self.getUserRemarkName(msg['FromUserName'])
-            dstName = self.getUserRemarkName(msg['ToUserName'])
-     
-            sendtime = msg['CreateTime']
-            
-            msgType = msg['MsgType']
-            content = msg['Content']
-            msgid = msg['MsgId']
-            if msg['FromUserName'][:2] == '@@':
-                # 接收到来自群的消息
-                if re.search(":<br/>", content, re.IGNORECASE):
-                    [people, content] = content.split(':<br/>')
-                    groupName = srcName
-                    srcName = self.getUserRemarkName(people)
-                    dstName = 'GROUP'
-                else:
-                    groupName = srcName
-                    srcName = 'SYSTEM'
-            elif msg['ToUserName'][:2] == '@@':
-                # 自己发给群的消息
-                groupName = dstName
-                dstName = 'GROUP'
+    
+
                 
-            if msgType == 1:
-                self.q.put(r)
-                print 'qsize' + str(self.q.qsize())
-                raw_msg = {'raw_msg': msg}
-                self._showMsg(raw_msg)
-                #self.autoReplyMode = True
-                if groupName == None:
-                    if self.autoReplyMode:
-                        ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
-                        if self.webwxsendmsg(ans, msg['FromUserName']):
-                            print u'自动回复: ' + ans
-                        else:
-                            print u'自动回复失败'
-                            '''
-                if content[0:4] == u'cmd:':
-                    cmd = content[4:]
-                    #self.pipe.stdin.write(cmd)
-                    #self.pipe.stdin.flush()
-                    #self.cmder = msg['FromUserName']
-                    
-                    '''
-            elif msgType == 10002:
-                raw_msg = {'raw_msg': msg, 'message': u'%s 撤回了一条消息' % srcName}
-                self._showMsg(raw_msg)
-            else:
-                raw_msg = {
-                    'raw_msg': msg, 'message': u'[*] 该消息类型为: %d，可能是表情，图片, 链接或红包' % msg['MsgType']}
-                #self._showMsg(raw_msg)
+                
+                
+                
+                
+                
+        
     def sendAddfriend(self,toname):
         '''
         作用：发送好友添加请求

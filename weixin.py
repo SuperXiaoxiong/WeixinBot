@@ -769,6 +769,8 @@ class WebWeixin(object):
                 raw_msg = {'raw_msg': msg, 'message': '%s 发送了一张名片: %s' % (
                     name.strip(), json.dumps(info))}
                 self._showMsg(raw_msg)
+            
+                
             elif msgType == 47:
                 url = self._searchContent('cdnurl', content)
                 raw_msg = {'raw_msg': msg,

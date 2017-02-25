@@ -5,9 +5,14 @@ Created on 2017年2月15日
 '''
 
 '''
-TODO :API
-    :发送信息
- :自动回复
+TODO :
+:API
+ :群发定时 级别
+ :自动回复  级别
+ :插入数据库 发消息
+ :判断为空 messagelist
+ :index页面丰富
+ :使用公网转发
 '''
 
 import web
@@ -18,6 +23,9 @@ import hashlib
 import time
 import MySQLdb
 import re
+import Queue
+import datetime
+
 
 class WXLoginTh(wxlogin.WXLogin):
     
@@ -28,6 +36,19 @@ class WXLoginTh(wxlogin.WXLogin):
         self.saveFolder = os.path.join(os.getcwd(), 'static')
         self.wx_id = wx_id
         
+        #--------数据库添加-------
+        '''
+                    连接mysql数据库
+        '''
+        self.conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd = '',db='webuser')
+        self.cur = self.conn.cursor()
+        self.conn.set_character_set('utf8')
+        self.cur.execute('SET NAMES utf8;') 
+        self.cur.execute('SET CHARACTER SET utf8;')
+        self.cur.execute('SET character_set_connection=utf8;')
+        print '连接数据库成功！'
+        #----------------------
+
     def genQRCode(self):
         '''
         生成二维码，添加在linux平台下调用xdg打开二维码
@@ -45,7 +66,7 @@ class WXLoginTh(wxlogin.WXLogin):
         response = self.req.post(url=url, data=wxlogin.urllib.urlencode(params))
         data = response.content
         #print data
-        QRCODE_PATH = self._saveFile('qrcode'+ str(self.serialnum) +'.jpg', data)
+        self._saveFile('qrcode'+ str(self.serialnum) +'.jpg', data)
         
     def login_module(self):
         self._echo(u'[*] 微信网页版 ... 登陆')
@@ -78,18 +99,7 @@ class WXLoginTh(wxlogin.WXLogin):
         playWeChat = 0
         redEnvelope = 0
         
-          #--------数据库添加-------
-        '''
-                    连接mysql数据库
-        '''
-        self.conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd = '',db='webuser')
-        self.cur = self.conn.cursor()
-        self.conn.set_character_set('utf8')
-        self.cur.execute('SET NAMES utf8;') 
-        self.cur.execute('SET CHARACTER SET utf8;')
-        self.cur.execute('SET character_set_connection=utf8;')
-        print '连接数据库成功！'
-        #----------------------
+        
         
         
         while True:
@@ -193,7 +203,91 @@ class WXLoginTh(wxlogin.WXLogin):
             #self.cur.close()
             self.conn.commit()
             print '插入成功！'
+    
+    
+    def handleMsg(self, r):
+        for msg in r['AddMsgList']:
+            #print msg
+            srcName = None
+            dstName = None
+            groupName = None
+            content = None
+            sendtime = None
+            #flagtime = time.time()
+            #print flagtime
+            srcName = self.getUserRemarkName(msg['FromUserName'])
+            dstName = self.getUserRemarkName(msg['ToUserName'])
+     
+            sendtime = msg['CreateTime']
             
+            msgType = msg['MsgType']
+            content = msg['Content']
+            msgid = msg['MsgId']
+            if msg['FromUserName'][:2] == '@@':
+                # 接收到来自群的消息
+                if re.search(":<br/>", content, re.IGNORECASE):
+                    [people, content] = content.split(':<br/>')
+                    groupName = srcName
+                    srcName = self.getUserRemarkName(people)
+                    dstName = 'GROUP'
+                else:
+                    groupName = srcName
+                    srcName = 'SYSTEM'
+            elif msg['ToUserName'][:2] == '@@':
+                # 自己发给群的消息
+                groupName = dstName
+                dstName = 'GROUP'
+                
+            if msgType == 1:
+                self.q.put(r)
+                print 'qsize' + str(self.q.qsize())
+                raw_msg = {'raw_msg': msg}
+                self._showMsg(raw_msg)
+                #self.autoReplyMode = True
+                if groupName == None:
+                    if self.autoReplyMode:
+                        ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
+                        if self.webwxsendmsg(ans, msg['FromUserName']):
+                            print u'自动回复: ' + ans
+                        else:
+                            print u'自动回复失败'
+                            '''
+                if content[0:4] == u'cmd:':
+                    cmd = content[4:]
+                    #self.pipe.stdin.write(cmd)
+                    #self.pipe.stdin.flush()
+                    #self.cmder = msg['FromUserName']
+                    
+                    '''
+            elif msgType == 37:
+                '''好友验证消息'''
+                url = '%s/webwxverifyuser?r=%s&pass_ticket=%s' % (
+                    self.base_uri , int(time.time()), self.pass_ticket)
+                data = {
+                    'BaseRequest': self.BaseRequest,
+                    'Opcode': msg['Status'], 
+                    'VerifyUserListSize': 1,
+                    'VerifyUserList': [{
+                        'Value': msg['RecommendInfo']['UserName'],
+                        'VerifyUserTicket': '', }],
+                    'VerifyContent': msg['Ticket'],
+                    'SceneListCount': 1,
+                    'SceneList': 33, 
+                    'skey': self.skey }
+                
+                self._post(url, data, True)
+                self.webwxgetcontact()
+                
+                
+                
+            elif msgType == 10002:
+                raw_msg = {'raw_msg': msg, 'message': u'%s 撤回了一条消息' % srcName}
+                self._showMsg(raw_msg)
+            else:
+                raw_msg = {
+                    'raw_msg': msg, 'message': u'[*] 该消息类型为: %d，可能是表情，图片, 链接或红包' % msg['MsgType']}
+                #self._showMsg(raw_msg)       
+
             
 urls = (
     '/(.*)/','redirect',
@@ -204,6 +298,7 @@ urls = (
     '/group','group',
     '/messagelist','messagelist',
     )
+
 
 def notfound():
     return web.notfound("Sorry, the page you were looking for was not found.")
@@ -323,8 +418,10 @@ class index:
                     t_listen.start()
                     
                     wx_thread[session.user.serialnum] = t_listen
-                    
-                    
+                    wx_list.append(webwx)
+                    q_timer.put(timerJob(9997141980,'test','test',session.user.id))
+					
+					
                     '''
                     获取用户好友列表
                     '''
@@ -558,19 +655,36 @@ class group:
             return "%s" % (render.login())
     def POST(self):
         username = web.input().username
-        listvalue = web.input().choose_list
-        temp2 = db1.transaction()
+        listvalue = web.input().choose_list		
+        i = web.input(level=[])
+        ckboxvalue = i.get('level')
+        gpMsg = web.input().gpcontent
         
+        if gpMsg != '':
+            for i in ckboxvalue:
+                user_gplist = {
+					'wx_id':session.user.id,
+                    'privilege':i
+                }
+
+                resultgplist = db1.select('friend_list',where=web.db.sqlwhere(user_gplist))
+                serialnum = session.user.serialnum
+                webwx = wx_list[serialnum]
+                srcName = '我'
+                for x in resultgplist:
+                    sendMsg_result = webwx.sendMsg(x.markname, gpMsg)
+                    if(sendMsg_result == 1):
+                        db1.insert('messagelist',srcName=srcName,dstName=x.markname,content=gpMsg,wx_id=session.user.id)
+
+							
+        temp2 = db1.transaction()
         try:
             user_frilist = {
                 'wx_id':session.user.id,
                 'markname':username
-            }
-            #db1.insert('friend_list',uid=tempuid,markname=tempmark,nickname=tempnick)
-                                
+            }                                
             resultfrilist = db1.select('friend_list',  where=web.db.sqlwhere(user_frilist) )
-            #print len(resultfrilist)
-            #print tempmark
+           
             #数据库查询
             if len(resultfrilist) == 1:
                 #该用户已存在
@@ -610,11 +724,106 @@ class messagelist:
         else:
             render = create_render(2)
             return "%s" % (render.login())
-                
+    
+    def POST(self):
+
+        dstName = web.input().dstName
+        content = web.input().content
+        if web.input().timeflag != '':
+            timeflag = web.input().timeflag
+                 
+        serialnum = session.user.serialnum
+        webwx = wx_list[serialnum]
+        reply_mode = web.input().choose_list
+        if reply_mode == 'on':
+            webwx.reply_change(True)
+        elif reply_mode == 'off':
+            webwx.reply_change(False) 
+        else:
+            pass    
+        if timeflag == '1':
+            #print 'sdajak'
+            '''
+            作用：定时发送特定人的消息
+            格式：输入定时:人名:时间:信息；时间写小时:分钟就行，默认当天发送
+            '''
+            timerinfo = web.input().timeinfo
+            now_time = time.time()
+            ltime = time.localtime(now_time)
+            year = int(ltime.tm_year)
+            mon = int(ltime.tm_mon)
+            mday = int(ltime.tm_mday)
+            hour = int(timerinfo.split(':')[0])
+            min = int(timerinfo.split(':')[1])
+            sec = 0
+            timeC = datetime.datetime(year,mon,mday,hour,min,sec)
+            timestamp = time.mktime(timeC.timetuple())
+            q_timer.put(timerJob(timestamp,dstName,content,session.user.serialnum))
+            print timestamp,dstName,content,session.user.serialnum
+            lastest_timer = int(timestamp)
+        else:
+			
+            srcName = '我'
+            sendMsg_result = webwx.sendMsg(dstName, content)
+            if(sendMsg_result == 1):
+                db1.insert('messagelist',srcName=srcName,dstName=dstName,content=content,wx_id=session.user.id)
+        web.seeother('/messagelist')         
+
+
+class timerJob(object):
+    '''
+    定时消息类，包括时间轴，收件人和发送的信息
+    '''
+    def __init__(self,priority,name,word,wxid):
+        self.priority = priority
+        self.name = name
+        self.word = word
+        self.wxid = wxid
+        return
+    def __cmp__(self,other):
         
+        return cmp(self.priority,other.priority)
+    
+
+def process_timejob(q_timer):
+    '''
+    线程：监听离现在最近的定时消息是否可以发送
+    计算时间方法：使用优先队列，每次取两个数据，比较时间轴，大的重新放回队列，然后短的时间轴
+和现在的时间轴比较，小的话，重新放回队列，休眠一秒，循环此过程
+这样可以保证随时输入的定时消息可以取出队列进行比较
+    '''
+    while True:
+        while True:
+            next_timejob = q_timer.get()
+            next_next_timejob = q_timer.get()
+            if next_next_timejob.priority < next_timejob.priority:
+                q_timer.put(next_timejob)
+                now_timejob = next_next_timejob
+            else:
+                q_timer.put(next_next_timejob)
+                now_timejob = next_timejob
+            
+            if int(now_timejob.priority) <= int(time.time()):
+                break
+            else:
+                time.sleep(1)
+            q_timer.put(now_timejob) 
+                
+        serialnum = now_timejob.wxid
+        print serialnum
+        webwx = wx_list[serialnum]
+        print serialnum,now_timejob.name, now_timejob.word
+        webwx.sendMsg(now_timejob.name, now_timejob.word)
+        q_timer.task_done()          
+
                         
 db1 = web.database(dbn = 'mysql', db='webuser', user='root',pw='')  
 wx_thread = []  
+wx_list = []
+q_timer = Queue.PriorityQueue()
+time_work = threading.Thread(target=process_timejob,args=(q_timer,))
+time_work.start()
+
 if __name__ == "__main__":
     
     app.run()

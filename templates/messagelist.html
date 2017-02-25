@@ -16,6 +16,41 @@ $def with (name)
 		$if t != '':
 			<tr><td>$t</td></tr>
 </table>
+<form action=/messagelist method=POST>
+	<table id="sendMsg">
+		<tr>
+			<td>dstName: </td>
+			<td><input type=text name='dstName'></td>
+		</tr>
+		<tr>
+			<td>content: </td>
+			<td><input type=text name='content'></td>
+		</tr>
+		<tr>
+			<td><input name="timeflag" type="checkbox" value="1"/>定时:</td>
+			<td><input type=text name='timeinfo'></td>
+		</tr>>
+		<tr>
+			<td></td>
+			<td><input type=submit value=SENDMSG></td>
+		</tr>
+	</table>
+	
+	<table id="change_mode">
+		<tr>
+			
+			<td>自动回复模式: </td>
+			<td>
+			<select name="choose_list">
+			<option value="test"></option>
+  			<option value="on">on</option>
+  			<option value="off">off</option>
+			</select>
+			</td>
+			<td><input type=submit value=确认></td>
+		</tr>
+	</table>
+</form>
 
 <a href="http://127.0.0.1:8080/logout">登出</a>
 </body>
