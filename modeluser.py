@@ -426,41 +426,29 @@ class index:
                     '''
                     获取用户好友列表
                     '''
+                    user_frilist = {
+                        'wx_id':session.user.id
+                    }
                     frienduserlist = webwx.ContactList
                     sql_friendlist =[]
-                    sql_friendlist.append( db1.select('friend_list'))
+
+                    tempsqllist = db1.select('friend_list',what='markname',where=web.db.sqlwhere(user_frilist))
+                    for x in tempsqllist:
+                        sql_friendlist.append(x.markname)
+                        
+
                     for tempuser in frienduserlist:
                         '''
-                        更新好友列表
+                        #更新好友列表
                         '''
                         temp2 = db1.transaction()
-                        #tempnick=tempuser['NickName']
+
                         tempmark=tempuser['RemarkName']
-                        #print tempmark
                         try:
                             if tempmark not in sql_friendlist:
                                 db1.insert('friend_list',markname=tempmark,wx_id=session.user.id)
                                 sql_friendlist.append(tempmark)
-                                
-                            '''
-                            user_frilist = {
-                                'markname':tempmark,
-                                'wx_id':session.user.id
-                                }
-                            #db1.insert('friend_list',uid=tempuid,markname=tempmark,nickname=tempnick)
-                            
-                            resultfrilist = db1.select('friend_list',  where=web.db.sqlwhere(user_frilist) )
-                            #print len(resultfrilist)
-                            #print tempmark
-                            #数据库查询
-                            if len(resultfrilist) == 1:
-                                #该用户存在于好友列表
-                                db1.update('friend_list',where=web.db.sqlwhere(user_frilist),nickname=tempnick)
-                            else:
-                                #print tempmark
-                                #该用户未存在
-                                db1.insert('friend_list',markname=tempmark,nickname=tempnick,wx_id=session.user.id)
-                            '''
+
                         except :
                             temp2.rollback()
                         else:
