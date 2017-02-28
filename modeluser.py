@@ -40,7 +40,7 @@ class WXLoginTh(wxlogin.WXLogin):
         '''
                     连接mysql数据库
         '''
-        self.conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd = 'root',db='webuser')
+        self.conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd = '',db='webuser')
         self.cur = self.conn.cursor()
         self.conn.set_character_set('utf8')
         self.cur.execute('SET NAMES utf8;') 
@@ -819,7 +819,7 @@ def process_timejob(q_timer):
         q_timer.task_done()          
 
                         
-db1 = web.database(dbn = 'mysql', db='webuser', user='root',pw='root')  
+db1 = web.database(dbn = 'mysql', db='webuser', user='root',pw='')  
 wx_thread = []  
 wx_list = []
 q_timer = Queue.PriorityQueue()

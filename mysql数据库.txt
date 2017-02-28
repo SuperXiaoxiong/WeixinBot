@@ -1,24 +1,24 @@
-windowï¿½ï¿½
-×¢ï¿½ï¿½ï¿½ï¿½service.msiï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-ï¿½ï¿½Òªï¿½ï¿½×°mysqldb
+window°²
+×¢ÒâÓÃservice.msiÆô¶¯·şÎñ
+ĞèÒª°²×°mysqldb
 
 
-ï¿½ï¿½×°mysql 
+°²×°mysql 
 sudo service mysql start 
 mysql -u root -p
-ï¿½ï¿½Â¼
+µÇÂ¼
 
-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½
+´´½¨Êı¾İ¿â
 create database webuser;
 use webuser
 
 
-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½
-ï¿½Ã»ï¿½id ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë£¬ï¿½Ã»ï¿½È¨ï¿½ï¿½ï¿½ï¿½Ğ©ï¿½ï¿½Îªnull
-ï¿½ï¿½ï¿½ï¿½Òªï¿½Ã»ï¿½key, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É£ï¿½
-ï¿½ï¿½ï¿½ï¿½ï¿½keyÓ¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½md5ï¿½ï¿½ï¿½Üµï¿½
+´´½¨Êı¾İ¿â
+ÓÃ»§id ×Ô¶¯Ôö³¤£¬ÓÃ»§ÃûºÍÃÜÂë£¬ÓÃ»§È¨ÏŞÕâĞ©²»Îªnull
+»¹ĞèÒªÓÃ»§key, Ëæ»úÉú³É£¬
+ÃÜÂëºÍkeyÓ¦¸ÃÊÇÓÃmd5¼ÓÃÜµÄ
 
-ï¿½ï¿½ï¿½İ¿ï¿½ï¿½Ğ²ï¿½Òªï¿½ï¿½ï¿½Ö¶ï¿½ pass ï¿½ï¿½ï¿½á±»Ê¶ï¿½ï¿½Îªï¿½Ø¼ï¿½ï¿½ï¿½
+Êı¾İ¿âÖĞ²»ÒªÓĞ×Ö¶Î pass £¬»á±»Ê¶±ğÎª¹Ø¼ü×Ö
 
 create table example_users(
 	id int(12) not null auto_increment,
@@ -30,22 +30,22 @@ create table example_users(
 	primary key(id)
 	);
 
-ï¿½ï¿½ï¿½ï¿½user ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¸ï¿½
+ÉèÖÃuser ÓÃ»§Ãû²»¿ÉÒÔÖØ¸´
 alter table example_users add unique index(user);
-ï¿½ï¿½ï¿½Î¨Ò»ï¿½ï¿½ï¿½ï¿½
+Ìí¼ÓÎ¨Ò»Ë÷Òı
 
-ï¿½Ş¸ï¿½serialnumÄ£ï¿½ï¿½Ä¬ï¿½ï¿½Öµ
+ĞŞ¸ÄserialnumÄ£¿éÄ¬ÈÏÖµ
 alter table example_users alter column serialnum set default -1;
 alter table example_users alter column wxkey set default 'default';
 
-ï¿½Ş¸Ä±ï¿½ï¿½ï¿½ï¿½ï¿½ update example_users set serialnum=-1 where id=1 or id=4;
+ĞŞ¸Ä±íÊı¾İ update example_users set serialnum=-1 where id=1 or id=4;
 
-ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½İ£ï¿½
+Ìí¼ÓÒ»ÌõÊı¾İ£¬
 INSERT INTO example_users(user, passwd) VALUES ('admin'
 ,'admin');
 
-show create table TableName ï¿½ï¿½ show full columns from tableName
-ï¿½ï¿½ï¿½ï¿½utf-8ï¿½ï¿½ï¿½ï¿½ï¿½
+show create table TableName »ò show full columns from tableName
+½¨Á¢utf-8±àÂë±í
 create table zhongwen_user
 (
 id int,  
@@ -54,8 +54,8 @@ Name char(15) not null check(user_Name !=''),
   primary key(id)         
  
 )engine=innodb default charset=utf8 auto_increment=1;
-ï¿½î¿ªÊ¼ï¿½ï¿½MySQL Administratorï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½ï¿½Ê±ï¿½ò£¬±ï¿½È±Ê¡ï¿½ï¿½InnoDBï¿½ï¿½ï¿½Í£ï¿½Ò²ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½â¡£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Access2MySQLï¿½ï¿½ï¿½ï¿½ï¿½İµï¿½Ê±ï¿½ï¿½ï¿½ï¿½Ö»ï¿½Üµï¿½ï¿½ï¿½ MyISAMï¿½ï¿½ï¿½ÍµÄ±ï¿½ï¿½ï¿½Öªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê²Ã´ï¿½ï¿½ï¿½ğ£¬¾ï¿½È¥ï¿½ï¿½ï¿½Ë²é¡£Ô­ï¿½ï¿½ï¿½ï¿½MyISAMï¿½ï¿½ï¿½Í²ï¿½Ö§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¸ß¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½InnoDBï¿½ï¿½ï¿½ï¿½Ö§ï¿½Ö¡ï¿½ MyISAMï¿½ï¿½ï¿½ÍµÄ±ï¿½Ç¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ï¿½ï¿½È±ï¿½InnoDBï¿½ï¿½ï¿½Í¸ï¿½ï¿½ì£¬ï¿½ï¿½ï¿½Ç²ï¿½ï¿½á¹©ï¿½ï¿½ï¿½ï¿½Ö§ï¿½Ö£ï¿½ï¿½ï¿½InnoDBï¿½á¹©ï¿½ï¿½ï¿½ï¿½Ö§ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½â²¿ï¿½ï¿½ï¿½È¸ß¼ï¿½ï¿½ï¿½ï¿½İ¿â¹¦ï¿½Ü¡ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ï¿½Ô¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ±ï¿½Í¬ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½Ã²ï¿½Í¬ï¿½Ä´æ´¢ï¿½ï¿½ï¿½Í¡ï¿½
-ï¿½é¿´ï¿½ï¿½ï¿½ ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+×î¿ªÊ¼ÓÃMySQL Administrator½¨Êı¾İ¿âµÄÊ±ºò£¬±íÈ±Ê¡ÊÇInnoDBÀàĞÍ£¬Ò²¾ÍÃ»ÓĞÔÚÒâ¡£ºóÀ´ÓÃAccess2MySQLµ¼Êı¾İµÄÊ±ºò·¢ÏÖÖ»ÄÜµ¼³É MyISAMÀàĞÍµÄ±í£¬²»ÖªµÀÕâÁ½ÖÖÀàĞÍÓĞÊ²Ã´Çø±ğ£¬¾ÍÈ¥²éÁË²é¡£Ô­À´ÊÇMyISAMÀàĞÍ²»Ö§³ÖÊÂÎñ´¦ÀíµÈ¸ß¼¶´¦Àí£¬¶øInnoDBÀàĞÍÖ§³Ö¡£ MyISAMÀàĞÍµÄ±íÇ¿µ÷µÄÊÇĞÔÄÜ£¬ÆäÖ´ĞĞÊı¶È±ÈInnoDBÀàĞÍ¸ü¿ì£¬µ«ÊÇ²»Ìá¹©ÊÂÎñÖ§³Ö£¬¶øInnoDBÌá¹©ÊÂÎñÖ§³ÖÒÑ¾­Íâ²¿¼üµÈ¸ß¼¶Êı¾İ¿â¹¦ÄÜ¡£Õâ Ñù¾Í¿ÉÒÔ¸ù¾İÊı¾İ±í²»Í¬µÄÓÃ´¦ÊÇÓÃ²»Í¬µÄ´æ´¢ÀàĞÍ¡£
+²é¿´±íµÄ ×Ö·û¼¯ÉèÖÃ
 show create table t1;
  
 
@@ -67,7 +67,6 @@ create table friend_list(
     primary key(id),
     foreign key(wx_id) references example_users(id)  
 )engine=innodb default charset=utf8 auto_increment=1;
-
 
 create table messagelist(
 message_id int(12) not null auto_increment,
