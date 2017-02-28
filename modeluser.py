@@ -40,7 +40,7 @@ class WXLoginTh(wxlogin.WXLogin):
         '''
                     连接mysql数据库
         '''
-        self.conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd = '',db='webuser')
+        self.conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd = 'root',db='webuser')
         self.cur = self.conn.cursor()
         self.conn.set_character_set('utf8')
         self.cur.execute('SET NAMES utf8;') 
@@ -248,6 +248,7 @@ class WXLoginTh(wxlogin.WXLogin):
                     if self.autoReplyMode:
                         ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
                         if self.webwxsendmsg(ans, msg['FromUserName']):
+                            db1.insert('messagelist',srcName='自动回复:',dstName=srcName,content=ans,wx_id=str(self.wx_id))
                             print u'自动回复: ' + ans
                         else:
                             print u'自动回复失败'
@@ -426,16 +427,22 @@ class index:
                     获取用户好友列表
                     '''
                     frienduserlist = webwx.ContactList
-                    num = 1
+                    sql_friendlist =[]
+                    sql_friendlist.append( db1.select('friend_list'))
                     for tempuser in frienduserlist:
                         '''
                         更新好友列表
                         '''
                         temp2 = db1.transaction()
-                        tempnick=tempuser['NickName']
+                        #tempnick=tempuser['NickName']
                         tempmark=tempuser['RemarkName']
                         #print tempmark
                         try:
+                            if tempmark not in sql_friendlist:
+                                db1.insert('friend_list',markname=tempmark,wx_id=session.user.id)
+                                sql_friendlist.append(tempmark)
+                                
+                            '''
                             user_frilist = {
                                 'markname':tempmark,
                                 'wx_id':session.user.id
@@ -453,7 +460,7 @@ class index:
                                 #print tempmark
                                 #该用户未存在
                                 db1.insert('friend_list',markname=tempmark,nickname=tempnick,wx_id=session.user.id)
-                            
+                            '''
                         except :
                             temp2.rollback()
                         else:
@@ -729,9 +736,13 @@ class messagelist:
 
         dstName = web.input().dstName
         content = web.input().content
-        if web.input().timeflag != '':
-            timeflag = web.input().timeflag
-                 
+        i = web.input(timeflag=[])
+        ckboxvalue = i.get('timeflag')
+        if len(ckboxvalue):
+            timeMsg = '1'
+        else:
+            timeMsg = '0'
+            
         serialnum = session.user.serialnum
         webwx = wx_list[serialnum]
         reply_mode = web.input().choose_list
@@ -739,34 +750,37 @@ class messagelist:
             webwx.reply_change(True)
         elif reply_mode == 'off':
             webwx.reply_change(False) 
-        else:
-            pass    
-        if timeflag == '1':
+        else:         
+            if timeMsg == '1':
             #print 'sdajak'
-            '''
-            作用：定时发送特定人的消息
-            格式：输入定时:人名:时间:信息；时间写小时:分钟就行，默认当天发送
-            '''
-            timerinfo = web.input().timeinfo
-            now_time = time.time()
-            ltime = time.localtime(now_time)
-            year = int(ltime.tm_year)
-            mon = int(ltime.tm_mon)
-            mday = int(ltime.tm_mday)
-            hour = int(timerinfo.split(':')[0])
-            min = int(timerinfo.split(':')[1])
-            sec = 0
-            timeC = datetime.datetime(year,mon,mday,hour,min,sec)
-            timestamp = time.mktime(timeC.timetuple())
-            q_timer.put(timerJob(timestamp,dstName,content,session.user.serialnum))
-            print timestamp,dstName,content,session.user.serialnum
-            lastest_timer = int(timestamp)
-        else:
-			
-            srcName = '我'
-            sendMsg_result = webwx.sendMsg(dstName, content)
-            if(sendMsg_result == 1):
-                db1.insert('messagelist',srcName=srcName,dstName=dstName,content=content,wx_id=session.user.id)
+                '''
+                作用：定时发送特定人的消息
+                格式：输入定时:人名:时间:信息；时间写小时:分钟就行，默认当天发送
+                '''
+                timerinfo = web.input().timeinfo
+                now_time = time.time()
+                ltime = time.localtime(now_time)
+                year = int(ltime.tm_year)
+                mon = int(ltime.tm_mon)
+                mday = int(ltime.tm_mday)
+                hour = int(timerinfo.split(':')[0])
+                min = int(timerinfo.split(':')[1])
+                sec = 0
+                timeC = datetime.datetime(year,mon,mday,hour,min,sec)
+                timestamp = time.mktime(timeC.timetuple())
+                q_timer.put(timerJob(timestamp,dstName,content,session.user.serialnum))
+                print timestamp,dstName,content,session.user.serialnum
+                lastest_timer = int(timestamp)
+            
+            elif timeMsg == '0':
+        #print dstName
+                srcName = '我'
+                sendMsg_result = webwx.sendMsg(dstName, content)
+                if(sendMsg_result == 1):
+                    db1.insert('messagelist',srcName=srcName,dstName=dstName,content=content,wx_id=session.user.id)
+                
+        
+        
         web.seeother('/messagelist')         
 
 
@@ -817,7 +831,7 @@ def process_timejob(q_timer):
         q_timer.task_done()          
 
                         
-db1 = web.database(dbn = 'mysql', db='webuser', user='root',pw='')  
+db1 = web.database(dbn = 'mysql', db='webuser', user='root',pw='root')  
 wx_thread = []  
 wx_list = []
 q_timer = Queue.PriorityQueue()

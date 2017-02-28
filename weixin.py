@@ -22,7 +22,7 @@ from lxml import html
 
 # for media upload
 import mimetypes
-from requests_toolbelt.multipart.encoder import MultipartEncoder
+#from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 
 def catchKeyboardInterrupt(fn):
@@ -868,13 +868,13 @@ class WebWeixin(object):
                         line = line.replace('\n', '')
                         self._echo('-> ' + name + ': ' + line)
                         if self.webwxsendmsg(line, id):
-                            print u' [成功]'
+                            return 1
                         else:
                             print u' [失败]'
                         time.sleep(1)
             else:
                 if self.webwxsendmsg(word, id):
-                    print u'[*] 消息发送成功'
+                    return 1
                     logging.debug('[*] 消息发送成功')
                 else:
                     print u'[*] 消息发送失败'
