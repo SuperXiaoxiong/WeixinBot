@@ -7,12 +7,8 @@ Created on 2017年2月15日
 '''
 TODO :
 :API
- :群发定时 级别
- :自动回复  级别
- :插入数据库 发消息
- :判断为空 messagelist
- :index页面丰富
- :使用公网转发
+:页面整理及归并
+:说明文档
 '''
 
 import web
