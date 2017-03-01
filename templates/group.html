@@ -1,4 +1,4 @@
-$def with (list0,list1,list2)
+$def with (list0,list1,list2,flag0,flag1,flag2)
 
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -9,16 +9,24 @@ $def with (list0,list1,list2)
 </head>
 <table border="1">
 <tr>
+<td>级别</td>
+<td>用户列表</td>
+<td>自动回复状态</td>
+</tr>
+<tr>
 <td>级别０</td>
 <td>$list0</td>
+<td>$flag0</td>
 </tr>
 <tr>
 <td>级别１</td>
 <td>$list1</td>
+<td>$flag1</td>
 </tr>
 <tr>
 <td>级别２</td>
 <td>$list2</td>
+<td>$flag2</td>
 </tr>
 </table>
 
@@ -38,7 +46,7 @@ $def with (list0,list1,list2)
 			<td><input type=submit value=确认修改></td>
 		</tr>
 	</table>
-	<table id="sendGpMsg">
+	<table id="sendGpMsg"border="1">
 		<tr>
 			<td>dstName: </td>
 			<td><input name="level" type="checkbox" value="0"/>级别0
@@ -48,11 +56,19 @@ $def with (list0,list1,list2)
 		</tr>
 		<tr>
 			<td>content: </td>
-			<td><input type=text name='gpcontent'></td>
+			<td><input type=text name='gpcontent'>
+			<input type=submit value=发送消息></td>
 		</tr>
+	</table>
+
+	<table id="autoreply">
 		<tr>
-			<td></td>
-			<td><input type=submit value=发送消息></td>
+			<td>ReplyMode: </td>
+			<td><input name="reply" type="checkbox" value="0"/>级别0
+				<input name="reply" type="checkbox" value="1"/>级别1
+				<input name="reply" type="checkbox" value="2"/>级别2
+			</td>
+			<td><input type=submit value=确认修改></td>
 		</tr>
 	</table>
 </form>

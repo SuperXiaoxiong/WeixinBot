@@ -244,6 +244,20 @@ class WXLoginTh(wxlogin.WXLogin):
                 raw_msg = {'raw_msg': msg}
                 self._showMsg(raw_msg)
                 #self.autoReplyMode = True
+                user_frilist = {
+                'wx_id':str(self.wx_id),
+                'markname':srcName
+                }                                
+                resultfrilist = db1.select('friend_list', what='privilege', where=web.db.sqlwhere(user_frilist) )
+                for i in resultfrilist:
+                    if replyflag[self.wx_id][int(i.privilege)]==1:
+                        ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
+                        if self.webwxsendmsg(ans, msg['FromUserName']):
+                            db1.insert('messagelist',srcName='自动回复:',dstName=srcName,content=ans,wx_id=str(self.wx_id))
+                            print u'自动回复: ' + ans
+                        else:
+                            print u'自动回复失败'
+                '''
                 if groupName == None:
                     if self.autoReplyMode:
                         ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
@@ -252,7 +266,8 @@ class WXLoginTh(wxlogin.WXLogin):
                             print u'自动回复: ' + ans
                         else:
                             print u'自动回复失败'
-                            '''
+                 '''           
+                '''
                 if content[0:4] == u'cmd:':
                     cmd = content[4:]
                     #self.pipe.stdin.write(cmd)
@@ -422,6 +437,7 @@ class index:
                     wx_list.append(webwx)
                     q_timer.put(timerJob(9997141980,'test','test',session.user.id))
 					
+                    replyflag[session.user.id]=[0,0,0]
 					
                     '''
                     获取用户好友列表
@@ -448,7 +464,6 @@ class index:
                             if tempmark not in sql_friendlist:
                                 db1.insert('friend_list',markname=tempmark,wx_id=session.user.id)
                                 sql_friendlist.append(tempmark)
-
                         except :
                             temp2.rollback()
                         else:
@@ -607,6 +622,7 @@ class regist:
             
             
 class group: 
+    #replyflag=[0,0,0]
     def GET(self):
         '''
         如果没有登录，重定向到登录页面
@@ -644,7 +660,8 @@ class group:
             restr2=''
             for x2 in tempresultlist2:
                 restr2 = restr2 +' '+ x2.markname
-            return render.group(restr0,restr1,restr2)
+            #print 'GET',replyflag
+            return render.group(restr0,restr1,restr2,replyflag[session.user.id][0],replyflag[session.user.id][1],replyflag[session.user.id][2])
         else:
             render = create_render(2)
             return "%s" % (render.login())
@@ -693,7 +710,14 @@ class group:
             temp2.rollback()
         else:
             temp2.commit()
-            
+        
+        x = web.input(reply=[])
+        replybox=x.get('reply') 
+        #print replybox
+        for tempre in replybox:
+            #print tempre
+            replyflag[session.user.id][int(tempre)] = (replyflag[session.user.id][int(tempre)]+1)%2
+        #print 'POST',replyflag
         web.seeother('/group')        
 
            
@@ -817,7 +841,8 @@ def process_timejob(q_timer):
         print serialnum,now_timejob.name, now_timejob.word
         webwx.sendMsg(now_timejob.name, now_timejob.word)
         q_timer.task_done()          
-
+#replyflag = [0,0,0]
+replyflag={}
                         
 db1 = web.database(dbn = 'mysql', db='webuser', user='root',pw='')  
 wx_thread = []  
