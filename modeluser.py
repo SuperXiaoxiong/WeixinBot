@@ -36,18 +36,7 @@ class WXLoginTh(wxlogin.WXLogin):
         self.saveFolder = os.path.join(os.getcwd(), 'static')
         self.wx_id = wx_id
         
-        #--------数据库添加-------
-        '''
-                    连接mysql数据库
-        '''
-        self.conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd = '',db='webuser')
-        self.cur = self.conn.cursor()
-        self.conn.set_character_set('utf8')
-        self.cur.execute('SET NAMES utf8;') 
-        self.cur.execute('SET CHARACTER SET utf8;')
-        self.cur.execute('SET character_set_connection=utf8;')
-        print '连接数据库成功！'
-        #----------------------
+        
 
     def genQRCode(self):
         '''
@@ -199,9 +188,9 @@ class WXLoginTh(wxlogin.WXLogin):
             # sys.setdefaultencoding('utf-8')
             print '%s %s -> %s: %s' % (message_id, srcName.strip(), dstName.strip(), content)
             sql = "insert into messagelist(srcName,dstName,content,wx_id) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "');"
-            self.cur.execute(sql)
+            python_cur.execute(sql)
             #self.cur.close()
-            self.conn.commit()
+            python_conn.commit()
             print '插入成功！'
     
     
@@ -317,16 +306,12 @@ urls = (
 
 
 def notfound():
-    return web.notfound("Sorry, the page you were looking for was not found.")
+    return web.seeother('./index')
 
 app = web.application(urls, globals())
 app.notfound = notfound
 
-if web.config.get('_session') is None:
-    session = web.session.Session(app, web.session.DiskStore('sessions'), initializer={'login':0})
-    web.config._session = session
-else:
-    session = web.config._session
+
 
 
 from random import Random
@@ -687,8 +672,7 @@ class group:
                     sendMsg_result = webwx.sendMsg(x.markname, gpMsg)
                     if(sendMsg_result == 1):
                         db1.insert('messagelist',srcName=srcName,dstName=x.markname,content=gpMsg,wx_id=session.user.id)
-
-							
+                        							
         temp2 = db1.transaction()
         try:
             user_frilist = {
@@ -851,6 +835,51 @@ q_timer = Queue.PriorityQueue()
 time_work = threading.Thread(target=process_timejob,args=(q_timer,))
 time_work.start()
 
+
+#--------数据库添加-------
+'''
+使用python原生语句操作mysql数据库
+'''
+python_conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd = '',db='webuser')
+python_cur = python_conn.cursor()
+python_conn.set_character_set('utf8')
+python_cur.execute('SET NAMES utf8;') 
+python_cur.execute('SET CHARACTER SET utf8;')
+python_cur.execute('SET character_set_connection=utf8;')
+print '连接数据库成功！'
+#----------------------
+        
+        
+
+if web.config.get('_session') is None:
+    session = web.session.Session(app, web.session.DiskStore('sessions'), initializer={'login':0})
+    web.config._session = session
+else:
+    session = web.config._session
+
+
+def init_session():
+    cur_pwd = os.getcwd()
+    cur_path = os.path.join(cur_pwd,'sessions')
+    list_files = os.listdir(cur_path)
+    for _file in list_files:
+        os.remove(os.path.join(cur_path,_file))
+    
+
+def init_db():
+    #sql = "insert into messagelist(srcName,dstName,content,wx_id) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "');"
+    sql = "update example_users set serialnum=-1, wxkey='default' where 1;"
+    python_cur.execute(sql)
+    python_conn.commit()
+    print '执行'
+     
 if __name__ == "__main__":
+    '''
+    定义服务器重启 :
+    删除session,
+    数据库将wxkey全置为default,serialnum置为-1,但联系人,对话,group保留
+    '''
+    init_session()
+    init_db()
     
     app.run()

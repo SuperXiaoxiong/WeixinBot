@@ -2,6 +2,17 @@ window安
 注意用service.msi启动服务
 需要安装mysqldb
 
+sudo aptitude install python-dev
+sudo pip install mysql-python
+
+linux安装mysqldb遇到EnvironmentError: mysql_config not found
+问题
+寻找 sudo find / -name mysql_config
+修改mysql-python源码包文件 更改配置文件 
+
+python setup.py build
+python setup.py install
+
 
 安装mysql 
 sudo service mysql start 
