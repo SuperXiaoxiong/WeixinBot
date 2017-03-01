@@ -250,7 +250,7 @@ class WXLoginTh(wxlogin.WXLogin):
                 }                                
                 resultfrilist = db1.select('friend_list', what='privilege', where=web.db.sqlwhere(user_frilist) )
                 for i in resultfrilist:
-                    if replyflag[int(i.privilege)]==1:
+                    if replyflag[self.wx_id][int(i.privilege)]==1:
                         ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
                         if self.webwxsendmsg(ans, msg['FromUserName']):
                             db1.insert('messagelist',srcName='自动回复:',dstName=srcName,content=ans,wx_id=str(self.wx_id))
@@ -437,6 +437,7 @@ class index:
                     wx_list.append(webwx)
                     q_timer.put(timerJob(9997141980,'test','test',session.user.id))
 					
+                    replyflag[session.user.id]=[0,0,0]
 					
                     '''
                     获取用户好友列表
@@ -657,7 +658,7 @@ class group:
             for x2 in tempresultlist2:
                 restr2 = restr2 +' '+ x2.markname
             #print 'GET',replyflag
-            return render.group(restr0,restr1,restr2,replyflag[0],replyflag[1],replyflag[2])
+            return render.group(restr0,restr1,restr2,replyflag[session.user.id][0],replyflag[session.user.id][1],replyflag[session.user.id][2])
         else:
             render = create_render(2)
             return "%s" % (render.login())
@@ -712,7 +713,7 @@ class group:
         #print replybox
         for tempre in replybox:
             #print tempre
-            replyflag[int(tempre)] = (replyflag[int(tempre)]+1)%2
+            replyflag[session.user.id][int(tempre)] = (replyflag[session.user.id][int(tempre)]+1)%2
         #print 'POST',replyflag
         web.seeother('/group')        
 
@@ -837,7 +838,8 @@ def process_timejob(q_timer):
         print serialnum,now_timejob.name, now_timejob.word
         webwx.sendMsg(now_timejob.name, now_timejob.word)
         q_timer.task_done()          
-replyflag = [0,0,0]
+#replyflag = [0,0,0]
+replyflag={}
                         
 db1 = web.database(dbn = 'mysql', db='webuser', user='root',pw='root')  
 wx_thread = []  
