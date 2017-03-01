@@ -8,7 +8,7 @@ import requests
 import xml.dom.minidom
 import json
 import time
-import datetime
+
 import re
 import sys
 import os
@@ -17,8 +17,8 @@ import multiprocessing
 import platform
 import logging
 from collections import defaultdict
-from urlparse import urlparse
-from lxml import html
+
+
 
 # for media upload
 import mimetypes
@@ -666,7 +666,8 @@ class WebWeixin(object):
             # content = msg['raw_msg']['Content'].replace(
             # '&lt;', '<').replace('&gt;', '>')
             message_id = msg['raw_msg']['MsgId']
-
+            
+            '''
             if content.find('http://weixin.qq.com/cgi-bin/redirectforward?args=') != -1:
                 # 地理位置消息
                 data = self._get(content).decode('gbk').encode('utf-8')
@@ -680,7 +681,8 @@ class WebWeixin(object):
 
                 content = u'%s 发送了一个 位置消息 - 我在 [%s](%s) @ %s]' % (
                     srcName, pos, url, loc)
-
+            '''
+            
             if msg['raw_msg']['ToUserName'] == 'filehelper':
                 # 文件传输助手
                 dstName = u'文件传输助手'
