@@ -316,7 +316,7 @@ urls = (
     '/messagelist','messagelist',
     '/changelevel','changelevel',
     '/levelreply','levelreply',
-    '/api_get_message','api_get_message',
+    '/api_get_message','api_get_messages',
 
     )
 
@@ -747,7 +747,7 @@ class api_get_messages:
             msglists.append(msglist)
             
         dict_msg = {
-            "length" : len(msglist),
+            "length" : len(msglists),
             "messagelists":msglists,
             }
         print dict_msg
