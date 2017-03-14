@@ -21,7 +21,7 @@ import MySQLdb
 import re
 import Queue
 import datetime
-
+import json
 
 import sys
 reload(sys)
@@ -184,10 +184,15 @@ class WXLoginTh(wxlogin.WXLogin):
         if groupName != None:
             print '%s |%s| %s -> %s: %s' % (message_id, groupName.strip(), srcName.strip(), dstName.strip(), content)
         else:
-            # reload(sys)
-            # sys.setdefaultencoding('utf-8')
             print '%s %s -> %s: %s' % (message_id, srcName.strip(), dstName.strip(), content)
-            sql = "insert into messagelist(srcName,dstName,content,wx_id) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "');"
+            '''
+            如果是自己发的消息recieved设为1
+            反之为0
+            '''
+            if srcName == self.User['UserName']:
+                sql = "insert into messagelist(srcName,dstName,content,wx_id,received) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "' +'1');"
+            else:
+                sql = "insert into messagelist(srcName,dstName,content,wx_id,received) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "' + '0');"    
             python_cur.execute(sql)
             #self.cur.close()
             python_conn.commit()
@@ -308,6 +313,7 @@ urls = (
     '/index','index',
     '/group','group',
     '/messagelist','messagelist',
+    '/api_get_message','api_get_message',
     )
 
 
@@ -697,7 +703,44 @@ class group:
         #print 'POST',replyflag
         web.seeother('/group')        
 
-           
+
+
+        
+class api_get_messages:
+    def POST(self):
+        '''
+        api功能：获取消息。已经发送过得消息recieved位置为1，未发送置为0
+        
+        return json格式，
+        返回格式{
+        "length":长度，
+        "messagelists":[
+        [srcName1, dstName1, content1],
+        [srcName2, dstName2, content2],
+                ]
+        }
+        '''
+        
+        
+        api_wxkey = web.input().wxkey
+        sql_select = 'select srcName,dstName,content from messagelist where recieved=0 and wx_id=(select id from example_users where wxkey=$wxkey)'
+        messagelists = db1.query(sql_select, vars={'wxkey':api_wxkey})
+        sql_update = 'update  messagelist set recieved=0 where wx_id=(select id from example_users where wxkey=$wxkey)'
+        db1.query(sql_update, vars={'wxkey':api_wxkey})          
+                   
+        msglists = []
+        for msg in messagelists :
+            msglist = [msg.srcName.encode('utf-8') , msg.dstName.encode('utf-8'), msg.content.encode('utf-8')] 
+            msglists.append(msglist)
+            
+        dict_msg = {
+            "length" : len(msglist),
+            "messagelists":msglists,
+            }
+        print dict_msg
+        msglist = json.dumps(dict_msg)
+        return json.loads(msglist)           
+    
 class messagelist: 
     def GET(self):
         '''
