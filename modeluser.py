@@ -738,7 +738,7 @@ class api_get_messages:
         api_wxkey = web.input().wxkey
         sql_select = 'select srcName,dstName,content from messagelist where recieved=0 and wx_id=(select id from example_users where wxkey=$wxkey)'
         messagelists = db1.query(sql_select, vars={'wxkey':api_wxkey})
-        sql_update = 'update  messagelist set recieved=0 where wx_id=(select id from example_users where wxkey=$wxkey)'
+        sql_update = 'update  messagelist set recieved=1 where wx_id=(select id from example_users where wxkey=$wxkey)'
         db1.query(sql_update, vars={'wxkey':api_wxkey})          
                    
         msglists = []
