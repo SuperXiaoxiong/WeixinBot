@@ -1,24 +1,24 @@
-window°²
-×¢ÒâÓÃservice.msiÆô¶¯·şÎñ
-ĞèÒª°²×°mysqldb
+ï»¿windowå®‰
+æ³¨æ„ç”¨service.msiå¯åŠ¨æœåŠ¡
+éœ€è¦å®‰è£…mysqldb
 
 
-°²×°mysql 
+å®‰è£…mysql 
 sudo service mysql start 
 mysql -u root -p
-µÇÂ¼
+ç™»å½•
 
-´´½¨Êı¾İ¿â
+åˆ›å»ºæ•°æ®åº“
 create database webuser;
 use webuser
 
 
-´´½¨Êı¾İ¿â
-ÓÃ»§id ×Ô¶¯Ôö³¤£¬ÓÃ»§ÃûºÍÃÜÂë£¬ÓÃ»§È¨ÏŞÕâĞ©²»Îªnull
-»¹ĞèÒªÓÃ»§key, Ëæ»úÉú³É£¬
-ÃÜÂëºÍkeyÓ¦¸ÃÊÇÓÃmd5¼ÓÃÜµÄ
+åˆ›å»ºæ•°æ®åº“
+ç”¨æˆ·id è‡ªåŠ¨å¢é•¿ï¼Œç”¨æˆ·åå’Œå¯†ç ï¼Œç”¨æˆ·æƒé™è¿™äº›ä¸ä¸ºnull
+è¿˜éœ€è¦ç”¨æˆ·key, éšæœºç”Ÿæˆï¼Œ
+å¯†ç å’Œkeyåº”è¯¥æ˜¯ç”¨md5åŠ å¯†çš„
 
-Êı¾İ¿âÖĞ²»ÒªÓĞ×Ö¶Î pass £¬»á±»Ê¶±ğÎª¹Ø¼ü×Ö
+æ•°æ®åº“ä¸­ä¸è¦æœ‰å­—æ®µ pass ï¼Œä¼šè¢«è¯†åˆ«ä¸ºå…³é”®å­—
 
 create table example_users(
 	id int(12) not null auto_increment,
@@ -30,22 +30,22 @@ create table example_users(
 	primary key(id)
 	);
 
-ÉèÖÃuser ÓÃ»§Ãû²»¿ÉÒÔÖØ¸´
+è®¾ç½®user ç”¨æˆ·åä¸å¯ä»¥é‡å¤
 alter table example_users add unique index(user);
-Ìí¼ÓÎ¨Ò»Ë÷Òı
+æ·»åŠ å”¯ä¸€ç´¢å¼•
 
-ĞŞ¸ÄserialnumÄ£¿éÄ¬ÈÏÖµ
+ä¿®æ”¹serialnumæ¨¡å—é»˜è®¤å€¼
 alter table example_users alter column serialnum set default -1;
 alter table example_users alter column wxkey set default 'default';
 
-ĞŞ¸Ä±íÊı¾İ update example_users set serialnum=-1 where id=1 or id=4;
+ä¿®æ”¹è¡¨æ•°æ® update example_users set serialnum=-1 where id=1 or id=4;
 
-Ìí¼ÓÒ»ÌõÊı¾İ£¬
+æ·»åŠ ä¸€æ¡æ•°æ®ï¼Œ
 INSERT INTO example_users(user, passwd) VALUES ('admin'
 ,'admin');
 
-show create table TableName »ò show full columns from tableName
-½¨Á¢utf-8±àÂë±í
+show create table TableName æˆ– show full columns from tableName
+å»ºç«‹utf-8ç¼–ç è¡¨
 create table zhongwen_user
 (
 id int,  
@@ -54,8 +54,8 @@ Name char(15) not null check(user_Name !=''),
   primary key(id)         
  
 )engine=innodb default charset=utf8 auto_increment=1;
-×î¿ªÊ¼ÓÃMySQL Administrator½¨Êı¾İ¿âµÄÊ±ºò£¬±íÈ±Ê¡ÊÇInnoDBÀàĞÍ£¬Ò²¾ÍÃ»ÓĞÔÚÒâ¡£ºóÀ´ÓÃAccess2MySQLµ¼Êı¾İµÄÊ±ºò·¢ÏÖÖ»ÄÜµ¼³É MyISAMÀàĞÍµÄ±í£¬²»ÖªµÀÕâÁ½ÖÖÀàĞÍÓĞÊ²Ã´Çø±ğ£¬¾ÍÈ¥²éÁË²é¡£Ô­À´ÊÇMyISAMÀàĞÍ²»Ö§³ÖÊÂÎñ´¦ÀíµÈ¸ß¼¶´¦Àí£¬¶øInnoDBÀàĞÍÖ§³Ö¡£ MyISAMÀàĞÍµÄ±íÇ¿µ÷µÄÊÇĞÔÄÜ£¬ÆäÖ´ĞĞÊı¶È±ÈInnoDBÀàĞÍ¸ü¿ì£¬µ«ÊÇ²»Ìá¹©ÊÂÎñÖ§³Ö£¬¶øInnoDBÌá¹©ÊÂÎñÖ§³ÖÒÑ¾­Íâ²¿¼üµÈ¸ß¼¶Êı¾İ¿â¹¦ÄÜ¡£Õâ Ñù¾Í¿ÉÒÔ¸ù¾İÊı¾İ±í²»Í¬µÄÓÃ´¦ÊÇÓÃ²»Í¬µÄ´æ´¢ÀàĞÍ¡£
-²é¿´±íµÄ ×Ö·û¼¯ÉèÖÃ
+æœ€å¼€å§‹ç”¨MySQL Administratorå»ºæ•°æ®åº“çš„æ—¶å€™ï¼Œè¡¨ç¼ºçœæ˜¯InnoDBç±»å‹ï¼Œä¹Ÿå°±æ²¡æœ‰åœ¨æ„ã€‚åæ¥ç”¨Access2MySQLå¯¼æ•°æ®çš„æ—¶å€™å‘ç°åªèƒ½å¯¼æˆ MyISAMç±»å‹çš„è¡¨ï¼Œä¸çŸ¥é“è¿™ä¸¤ç§ç±»å‹æœ‰ä»€ä¹ˆåŒºåˆ«ï¼Œå°±å»æŸ¥äº†æŸ¥ã€‚åŸæ¥æ˜¯MyISAMç±»å‹ä¸æ”¯æŒäº‹åŠ¡å¤„ç†ç­‰é«˜çº§å¤„ç†ï¼Œè€ŒInnoDBç±»å‹æ”¯æŒã€‚ MyISAMç±»å‹çš„è¡¨å¼ºè°ƒçš„æ˜¯æ€§èƒ½ï¼Œå…¶æ‰§è¡Œæ•°åº¦æ¯”InnoDBç±»å‹æ›´å¿«ï¼Œä½†æ˜¯ä¸æä¾›äº‹åŠ¡æ”¯æŒï¼Œè€ŒInnoDBæä¾›äº‹åŠ¡æ”¯æŒå·²ç»å¤–éƒ¨é”®ç­‰é«˜çº§æ•°æ®åº“åŠŸèƒ½ã€‚è¿™ æ ·å°±å¯ä»¥æ ¹æ®æ•°æ®è¡¨ä¸åŒçš„ç”¨å¤„æ˜¯ç”¨ä¸åŒçš„å­˜å‚¨ç±»å‹ã€‚
+æŸ¥çœ‹è¡¨çš„ å­—ç¬¦é›†è®¾ç½®
 show create table t1;
  
 
@@ -81,4 +81,4 @@ foreign key(wx_id) references example_users(id)
 alter table messagelist add column recieved int(12);
 alter table messagelist alter column recieved set default 0;
 update messagelist set recieved=0;
-ĞŞ¸Ämessagelist±í£¬Ôö¼Ó×Ö¶Îrecieved £¬²¢ÉèÖÃÄ¬ÈÏÖµÎª0
+ä¿®æ”¹messagelistè¡¨ï¼Œå¢åŠ å­—æ®µrecieved ï¼Œå¹¶è®¾ç½®é»˜è®¤å€¼ä¸º0
