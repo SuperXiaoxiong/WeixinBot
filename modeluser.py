@@ -23,6 +23,10 @@ import Queue
 import datetime
 
 
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 class WXLoginTh(wxlogin.WXLogin):
     
     def __init__(self, serialnum, wx_id):
@@ -817,7 +821,7 @@ def process_timejob(q_timer):
 #replyflag = [0,0,0]
 replyflag={}
                         
-db1 = web.database(dbn = 'mysql', db='webuser', user='root',pw='')  
+db1 = web.database(dbn = 'mysql', db='webuser', user='root',pw='root')  
 wx_thread = []  
 wx_list = []
 q_timer = Queue.PriorityQueue()
@@ -829,7 +833,7 @@ time_work.start()
 '''
 使用python原生语句操作mysql数据库
 '''
-python_conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd = '',db='webuser')
+python_conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd = 'root',db='webuser')
 python_cur = python_conn.cursor()
 python_conn.set_character_set('utf8')
 python_cur.execute('SET NAMES utf8;') 
