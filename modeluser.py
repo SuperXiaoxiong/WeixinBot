@@ -190,9 +190,9 @@ class WXLoginTh(wxlogin.WXLogin):
             反之为0
             '''
             if srcName == self.User['UserName']:
-                sql = "insert into messagelist(srcName,dstName,content,wx_id,recieved) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "' +'1');"
+                sql = "insert into messagelist(srcName,dstName,content,wx_id,recieved) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "' ,+'1');"
             else:
-                sql = "insert into messagelist(srcName,dstName,content,wx_id,recieved) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "' + '0');"    
+                sql = "insert into messagelist(srcName,dstName,content,wx_id,recieved) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "', + '0');"    
             python_cur.execute(sql)
             #self.cur.close()
             python_conn.commit()
