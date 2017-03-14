@@ -222,7 +222,10 @@ class WXLoginTh(wxlogin.WXLogin):
                 # 自己发给群的消息
                 groupName = dstName
                 dstName = 'GROUP'
-                
+            
+            
+              
+            print msgType
             if msgType == 1:
                 self.q.put(r)
                 print 'qsize' + str(self.q.qsize())
@@ -262,6 +265,7 @@ class WXLoginTh(wxlogin.WXLogin):
                     '''
             elif msgType == 37:
                 '''好友验证消息'''
+                print u'收到消息'
                 url = '%s/webwxverifyuser?r=%s&pass_ticket=%s' % (
                     self.base_uri , int(time.time()), self.pass_ticket)
                 data = {
@@ -273,10 +277,12 @@ class WXLoginTh(wxlogin.WXLogin):
                         'VerifyUserTicket': '', }],
                     'VerifyContent': msg['Ticket'],
                     'SceneListCount': 1,
-                    'SceneList': 33, 
+                    'SceneList': [33], 
                     'skey': self.skey }
                 
                 self._post(url, data, True)
+                print url
+                print data
                 self.webwxgetcontact()
                 
                 
@@ -468,29 +474,7 @@ class index:
                         session.user.serialnum = -1
                         session.user.wxkey = 'default'
                         web.seeother('/index')
-            '''
-                初步思路，生成二维码，将二维码传回，页面传值wx对象
-                '''
-            '''
-                t_listen = threading.Thread(target=webwx.listenMsgMode,args = ())
-                t_listen.start()
-                serialnum = len(wx_thread)
-                wx_thread.append(t_listen)
-                
-                db1.update('example_users', web.db.sqlwhere({'user':session.user.user}), serialnum=serialnum)
-                '''
-                #return "%s" % (render.index(session.user.user, url = './static/qrcode.jpg', status='ok'))
-          
-                #return "%s" % (render.index(session.user.user, url = './static/qrcode'+str(session.user.serialnum)+'.jpg', status='ok'))
-            #else:
-            '''
-                if wx_thread[session.user.serialnum].isAlive():
-                
-                    return "%s" % (render.index(session.user.user, status = 'ok', url=''))
-                else:
-                    return "%s" % (render.index(session.user.user, status = 'no', url =''))
-                '''
-            #return "%s" % (render.index(session.user.user, './static/qrcode.jpg', status='ok'))
+            
         
         else:
             render = create_render(2)
@@ -527,6 +511,15 @@ class login:
             'user':user_name,
             'passwd':md5_passwd
             }
+        sql = "select * from example_users where user =  %s  and passwd = %s ;" 
+        print sql
+        #python_cur.execute(sql,[user_name ,md5_passwd])
+        
+        #raw_results =  python_cur.fetchall()
+        
+        #print raw_results
+        
+        
         results = db1.select('example_users',  where=web.db.sqlwhere(user_login) )
         #数据库查询
         if len(results) == 1:
