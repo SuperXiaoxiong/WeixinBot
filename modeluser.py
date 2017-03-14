@@ -190,9 +190,9 @@ class WXLoginTh(wxlogin.WXLogin):
             反之为0
             '''
             if srcName == self.User['UserName']:
-                sql = "insert into messagelist(srcName,dstName,content,wx_id,received) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "' +'1');"
+                sql = "insert into messagelist(srcName,dstName,content,wx_id,recieved) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "' +'1');"
             else:
-                sql = "insert into messagelist(srcName,dstName,content,wx_id,received) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "' + '0');"    
+                sql = "insert into messagelist(srcName,dstName,content,wx_id,recieved) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "' + '0');"    
             python_cur.execute(sql)
             #self.cur.close()
             python_conn.commit()
@@ -241,19 +241,20 @@ class WXLoginTh(wxlogin.WXLogin):
                 raw_msg = {'raw_msg': msg}
                 self._showMsg(raw_msg)
                 #self.autoReplyMode = True
-                user_frilist = {
-                'wx_id':str(self.wx_id),
-                'markname':srcName
-                }                                
-                resultfrilist = db1.select('friend_list', what='privilege', where=web.db.sqlwhere(user_frilist) )
-                for i in resultfrilist:
-                    if replyflag[self.wx_id][int(i.privilege)]==1:
-                        ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
-                        if self.webwxsendmsg(ans, msg['FromUserName']):
-                            db1.insert('messagelist',srcName='自动回复:',dstName=srcName,content=ans,wx_id=str(self.wx_id))
-                            print u'自动回复: ' + ans
-                        else:
-                            print u'自动回复失败'
+                if msg['FromUserName'][:2] != '@@':
+                    user_frilist = {
+                    'wx_id':str(self.wx_id),
+                    'markname':srcName
+                    }                                
+                    resultfrilist = db1.select('friend_list', what='privilege', where=web.db.sqlwhere(user_frilist) )
+                    for i in resultfrilist:
+                        if replyflag[self.wx_id][int(i.privilege)]==1:
+                            ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
+                            if self.webwxsendmsg(ans, msg['FromUserName']):
+                                db1.insert('messagelist',srcName='自动回复:',dstName=srcName,content=ans,wx_id=str(self.wx_id))
+                                print u'自动回复: ' + ans
+                            else:
+                                print u'自动回复失败'
                 '''
                 if groupName == None:
                     if self.autoReplyMode:
@@ -313,7 +314,10 @@ urls = (
     '/index','index',
     '/group','group',
     '/messagelist','messagelist',
+    '/changelevel','changelevel',
+    '/levelreply','levelreply',
     '/api_get_message','api_get_message',
+
     )
 
 
@@ -650,8 +654,7 @@ class group:
             render = create_render(2)
             return "%s" % (render.login())
     def POST(self):
-        username = web.input().username
-        listvalue = web.input().choose_list		
+        		
         i = web.input(level=[])
         ckboxvalue = i.get('level')
         gpMsg = web.input().gpcontent
@@ -671,7 +674,25 @@ class group:
                     sendMsg_result = webwx.sendMsg(x.markname, gpMsg)
                     if(sendMsg_result == 1):
                         db1.insert('messagelist',srcName=srcName,dstName=x.markname,content=gpMsg,wx_id=session.user.id)
-                        							
+        web.seeother('/group')        
+
+
+class levelreply:
+    def POST(self):
+        x = web.input(reply=[])
+        replybox=x.get('reply') 
+        #print replybox
+        for tempre in replybox:
+            #print tempre
+            replyflag[session.user.id][int(tempre)] = (replyflag[session.user.id][int(tempre)]+1)%2
+        #print 'POST',replyflag
+        web.seeother('/group')
+
+
+class changelevel:
+    def POST(self):
+        username = web.input().username
+        listvalue = web.input().choose_list
         temp2 = db1.transaction()
         try:
             user_frilist = {
@@ -693,15 +714,7 @@ class group:
             temp2.rollback()
         else:
             temp2.commit()
-        
-        x = web.input(reply=[])
-        replybox=x.get('reply') 
-        #print replybox
-        for tempre in replybox:
-            #print tempre
-            replyflag[session.user.id][int(tempre)] = (replyflag[session.user.id][int(tempre)]+1)%2
-        #print 'POST',replyflag
-        web.seeother('/group')        
+        web.seeother('/group')
 
 
 
@@ -754,7 +767,7 @@ class messagelist:
             user_frilist0 = {
                 'wx_id':session.user.id
             }
-         
+
             tempresultlist = db1.select('messagelist',what='message_id,srcName,dstName,content',where=web.db.sqlwhere(user_frilist0))
             restr=''
             for x in tempresultlist:

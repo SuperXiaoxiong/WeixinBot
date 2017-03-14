@@ -30,7 +30,7 @@ $def with (list0,list1,list2,flag0,flag1,flag2)
 </tr>
 </table>
 
-<form action=/group method=POST>
+<form action=/changelevel method=POST>
 	<table id="login">
 		<tr>
 			<td>用户: </td>
@@ -46,6 +46,8 @@ $def with (list0,list1,list2,flag0,flag1,flag2)
 			<td><input type=submit value=确认修改></td>
 		</tr>
 	</table>
+</form>
+<form action=/group method=POST>	
 	<table id="sendGpMsg"border="1">
 		<tr>
 			<td>dstName: </td>
@@ -60,7 +62,8 @@ $def with (list0,list1,list2,flag0,flag1,flag2)
 			<input type=submit value=发送消息></td>
 		</tr>
 	</table>
-
+</form>
+<form action=/levelreply method=POST>
 	<table id="autoreply">
 		<tr>
 			<td>ReplyMode: </td>
