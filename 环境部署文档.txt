@@ -1,0 +1,105 @@
+git clone https://github.com/SuperXiaoxiong/WeixinBot.git   //下载代码
+git checkout origin/muluser					//转换分支
+
+
+安装：
+
+sudo apt-get install python-dev
+sudo pip install mysql-python
+
+
+安装webpy
+sudo pip install web.py
+sudo pip insatll qrcode
+
+
+安装mysql
+安装mysqldb
+
+数据库配置
+
+
+sudo service mysql start 
+mysql -u root -p
+
+create database webuser;
+use webuser
+
+create table example_users(
+	id int(12) not null auto_increment,
+	user varchar(50) not null,
+	passwd varchar(50) not null,
+	privilege int not null default 0,
+	wxkey char(25),
+	serialnum int  default -1,
+	primary key(id)
+	);
+alter table example_users add unique index(user);
+alter table example_users alter column wxkey set default 'default';
+
+create table friend_list(
+    id int(12) not null auto_increment,
+    markname varchar(50),
+    privilege int not null default 0,
+    wx_id  int(12),   
+    primary key(id),
+    foreign key(wx_id) references example_users(id)  
+)engine=innodb default charset=utf8 auto_increment=1;
+
+
+create table messagelist(
+message_id int(12) not null auto_increment,
+srcName varchar(50),
+dstName varchar(50), 
+content varchar(200),
+primary key(message_id),
+wx_id  int(12),
+foreign key(wx_id) references example_users(id)
+)engine=innodb default charset=utf8 auto_increment=1;
+
+
+alter table messagelist add column recieved int(12);
+alter table messagelist alter column recieved set default 0;
+update messagelist set recieved=0;
+修改messagelist表，增加字段recieved ，并设置默认值为0
+
+
+uwsgi --socket :3011 --wsgi-file modeluser.py --thunder-lock  --enable-threads
+
+注意:在Weixinbot的目录下运行modeluser
+nohup uwsgi --socket :3011 --wsgi-file modeluser.py --thunder-lock  --enable-threads 1>output 2>&1 &
+
+后台启用
+listen 81 default_server;
+        listen [::]:81 default_server ipv6only=on;
+
+        root /usr/share/nginx/html;
+        index index.html index.htm;
+
+        # Make site accessible from http://localhost/
+        #server_name localhost;
+        server_name 123.206.188.29;
+ 	
+	location /static/{
+                root /home/ubuntu/WeixinBot/;  
+		#注明，不需要有static这一级
+
+        }
+
+        location / {
+                include uwsgi_params;
+                uwsgi_pass 127.0.0.1:3011;
+                #uwsgi_param UWSGI_CHDIR /home/ubuntu/www;
+                #uwsgi_param UWSGI_SCRIPT webapp;
+                # First attempt to serve request as file, then
+                # as directory, then fall back to displaying a 404.
+#               proxy_pass http://127.0.0.1:20008;
+                #try_files $uri $uri/ =404;
+                # Uncomment to enable naxsi on this location
+                # include /etc/nginx/naxsi.rules
+        }
+
+
+
+
+
