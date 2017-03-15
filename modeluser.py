@@ -317,10 +317,7 @@ urls = (
     '/changelevel','changelevel',
     '/levelreply','levelreply',
     '/api_get_message','api_get_messages',   
-    '/(.*.js)', 'StaticFile', #处理js文件 
-    '/(.*.css)', 'StaticFile', #处理css文件 
-    '/(.*.jpg)', 'StaticFile', #处理jpg文件 
-    '/(.*.png)', 'StaticFile', #处理png文件 
+    
     )
 
 
@@ -381,11 +378,11 @@ class redirect:
     def GET(self, path):
         web.seeother('/'+ path)
         #print path
-
+'''
 class StaticFile:  
     def GET(self, file):  
         web.seeother('/static/'+file);
-
+'''
 class index:
     
     def GET(self):
@@ -919,14 +916,16 @@ def init_db():
     python_cur.execute(sql)
     python_conn.commit()
     print '执行'
-     
-if __name__ == "__main__":
+
+    
+#if __name__ == "__main__":
     '''
     定义服务器重启 :
     删除session,
     数据库将wxkey全置为default,serialnum置为-1,但联系人,对话,group保留
     '''
-    init_session()
-    init_db()
-    
-    app.run()
+init_session()
+init_db()
+#使用uwsgi采用接口
+application = app.wsgifunc() 
+#app.run()
