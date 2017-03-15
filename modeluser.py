@@ -316,8 +316,11 @@ urls = (
     '/messagelist','messagelist',
     '/changelevel','changelevel',
     '/levelreply','levelreply',
-    '/api_get_message','api_get_messages',
-
+    '/api_get_message','api_get_messages',   
+    '/(.*.js)', 'StaticFile', #处理js文件 
+    '/(.*.css)', 'StaticFile', #处理css文件 
+    '/(.*.jpg)', 'StaticFile', #处理jpg文件 
+    '/(.*.png)', 'StaticFile', #处理png文件 
     )
 
 
@@ -379,7 +382,9 @@ class redirect:
         web.seeother('/'+ path)
         #print path
 
-
+class StaticFile:  
+    def GET(self, file):  
+        web.seeother('/static/'+file);
 
 class index:
     
@@ -436,10 +441,8 @@ class index:
                     
                     wx_thread[session.user.serialnum] = t_listen
                     wx_list.append(webwx)
-                    q_timer.put(timerJob(9997141980,'test','test',session.user.id))
-					
-                    replyflag[session.user.id]=[0,0,0]
-					
+                    q_timer.put(timerJob(9997141980,'test','test',session.user.id))					
+                    replyflag[session.user.id]=[0,0,0]					
                     '''
                     获取用户好友列表
                     '''
@@ -473,7 +476,7 @@ class index:
                     
                     session.user.wxkey = random_str()
                     db1.update('example_users', web.db.sqlwhere({'user':session.user.user}), serialnum=session.user.serialnum, wxkey=session.user.wxkey)
-                    return "%s" % (render.index(session.user.user, 'none', status='nice'))
+                    return "%s" % (render.index0(session.user.user, 'none', status=session.user.wxkey))
                 
                 else:
                     '''
@@ -482,7 +485,7 @@ class index:
                     '''
                     if wx_thread[session.user.serialnum].isAlive():
                         print session.user.serialnum
-                        return "%s" % (render.index(session.user.user, 'none', status=session.user.wxkey))
+                        return "%s" % (render.index0(session.user.user, 'none', status=session.user.wxkey))
                     else:
                         db1.update('example_users', web.db.sqlwhere({'user':session.user.user}), serialnum=-1, wxkey='default')
                         session.user.serialnum = -1
@@ -790,40 +793,35 @@ class messagelist:
             
         serialnum = session.user.serialnum
         webwx = wx_list[serialnum]
-        reply_mode = web.input().choose_list
-        if reply_mode == 'on':
-            webwx.reply_change(True)
-        elif reply_mode == 'off':
-            webwx.reply_change(False) 
-        else:         
-            if timeMsg == '1':
-            #print 'sdajak'
-                '''
-                作用：定时发送特定人的消息
-                格式：输入定时:人名:时间:信息；时间写小时:分钟就行，默认当天发送
-                '''
-                timerinfo = web.input().timeinfo
-                now_time = time.time()
-                ltime = time.localtime(now_time)
-                year = int(ltime.tm_year)
-                mon = int(ltime.tm_mon)
-                mday = int(ltime.tm_mday)
-                hour = int(timerinfo.split(':')[0])
-                min = int(timerinfo.split(':')[1])
-                sec = 0
-                timeC = datetime.datetime(year,mon,mday,hour,min,sec)
-                timestamp = time.mktime(timeC.timetuple())
-                q_timer.put(timerJob(timestamp,dstName,content,session.user.serialnum))
-                print timestamp,dstName,content,session.user.serialnum
-                lastest_timer = int(timestamp)
+                      
+        if timeMsg == '1':
+        #print 'sdajak'
+            '''
+            作用：定时发送特定人的消息
+            格式：输入定时:人名:时间:信息；时间写小时:分钟就行，默认当天发送
+            '''
+            timerinfo = web.input().timeinfo
+            now_time = time.time()
+            ltime = time.localtime(now_time)
+            year = int(ltime.tm_year)
+            mon = int(ltime.tm_mon)
+            mday = int(ltime.tm_mday)
+            hour = int(timerinfo.split(':')[0])
+            min = int(timerinfo.split(':')[1])
+            sec = 0
+            timeC = datetime.datetime(year,mon,mday,hour,min,sec)
+            timestamp = time.mktime(timeC.timetuple())
+            q_timer.put(timerJob(timestamp,dstName,content,session.user.serialnum))
+            print timestamp,dstName,content,session.user.serialnum
+            lastest_timer = int(timestamp)
+        
+        elif timeMsg == '0':
+    #print dstName
+            srcName = '我'
+            sendMsg_result = webwx.sendMsg(dstName, content)
+            if(sendMsg_result == 1):
+                db1.insert('messagelist',srcName=srcName,dstName=dstName,content=content,wx_id=session.user.id)
             
-            elif timeMsg == '0':
-        #print dstName
-                srcName = '我'
-                sendMsg_result = webwx.sendMsg(dstName, content)
-                if(sendMsg_result == 1):
-                    db1.insert('messagelist',srcName=srcName,dstName=dstName,content=content,wx_id=session.user.id)
-                
         
         
         web.seeother('/messagelist')         

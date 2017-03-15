@@ -1,21 +1,38 @@
 $def with (name, url, status)
-
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html>
+<html lang="en">
+    
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title></title>
-</head>
+        <title>index-0</title><meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="css/bootstrap.min.css" />
+		<link rel="stylesheet" href="css/bootstrap-responsive.min.css" />
+        <link rel="stylesheet" href="css/maruti-login.css" />
+    </head>
+    <body>
+        <div id="logo">
+            <img src="img/login-logo.png" alt="" />
+        </div>
+        <div id="loginbox" align="center"> 
+         <div class="control-group">
+                    <div class="controls">
+                        <div class="main_input_box">
+                            <img src = $url>
+                        </div>
+                    </div>
+                </div>     
+         <div class="control-group">
+                    <div class="controls">
+                        <div class="main_input_box">
+                            欢迎 $name,请扫上方的二维码进行登录!    
+                        </div>
+                    </div>
+                </div>           
+		</div>
+        
+        <script src="js/jquery.min.js"></script>  
+        <script src="js/maruti.login.js"></script> 
+        
+    </body>
 
-
-welcome $name!
-<img src = $url>
-status $status
-
-<a href="./index">首页</a>
-<a href="./logout">登出</a>
-<a href="./messagelist">消息列表</a>
-<a href="./login">登录</a>
-<a href="./regist">注册</a>
-<a href="./group">级别操作</a>
+</html>

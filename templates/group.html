@@ -1,84 +1,189 @@
 $def with (list0,list1,list2,flag0,flag1,flag2)
 
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title></title>
+<title>级别操作</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="css/bootstrap.min.css" />
+<link rel="stylesheet" href="css/bootstrap-responsive.min.css" />
+<link rel="stylesheet" href="css/uniform.css" />
+<link rel="stylesheet" href="css/select2.css" />
+<link rel="stylesheet" href="css/maruti-style.css" />
+<link rel="stylesheet" href="css/maruti-media.css" class="skin-color" />
 </head>
-<table border="1">
-<tr>
-<td>级别</td>
-<td>用户列表</td>
-<td>自动回复状态</td>
-</tr>
-<tr>
-<td>级别０</td>
-<td>$list0</td>
-<td>$flag0</td>
-</tr>
-<tr>
-<td>级别１</td>
-<td>$list1</td>
-<td>$flag1</td>
-</tr>
-<tr>
-<td>级别２</td>
-<td>$list2</td>
-<td>$flag2</td>
-</tr>
-</table>
+<body>
 
-<form action=/changelevel method=POST>
-	<table id="login">
-		<tr>
-			<td>用户: </td>
-			<td><input type=text name='username'></td>
-			<td>修改级别为: </td>
-			<td>
-			<select name="choose_list">
-  			<option value="0">0</option>
-  			<option value="1">1</option>
-  			<option value="2">2</option>
-			</select>
-			</td>
-			<td><input type=submit value=确认修改></td>
-		</tr>
-	</table>
-</form>
-<form action=/group method=POST>	
-	<table id="sendGpMsg"border="1">
-		<tr>
-			<td>dstName: </td>
-			<td><input name="level" type="checkbox" value="0"/>级别0
-				<input name="level" type="checkbox" value="1"/>级别1
-				<input name="level" type="checkbox" value="2"/>级别2
-			</td>
-		</tr>
-		<tr>
-			<td>content: </td>
-			<td><input type=text name='gpcontent'>
-			<input type=submit value=发送消息></td>
-		</tr>
-	</table>
-</form>
-<form action=/levelreply method=POST>
-	<table id="autoreply">
-		<tr>
-			<td>ReplyMode: </td>
-			<td><input name="reply" type="checkbox" value="0"/>级别0
-				<input name="reply" type="checkbox" value="1"/>级别1
-				<input name="reply" type="checkbox" value="2"/>级别2
-			</td>
-			<td><input type=submit value=确认修改></td>
-		</tr>
-	</table>
-</form>
+<!--Header-part-->
+<div id="header">
+  <h1><a href="dashboard.html">微信机器人后台管理</a></h1>
+</div>
+<!--close-Header-part--> 
 
-<a href="./index">首页</a>
-<a href="./logout">登出</a>
-<a href="./messagelist">消息列表</a>
-<a href="./login">登录</a>
-<a href="./regist">注册</a>
-<a href="./group">级别操作</a>
+<!--top-Header-messaages-->
+<div class="btn-group rightzero"> <a class="top_message tip-left" title="Manage Files"><i class="icon-file"></i></a> <a class="top_message tip-bottom" title="Manage Users"><i class="icon-user"></i></a> <a class="top_message tip-bottom" title="Manage Comments"><i class="icon-comment"></i><span class="label label-important">5</span></a> <a class="top_message tip-bottom" title="Manage Orders"><i class="icon-shopping-cart"></i></a> </div>
+<!--close-top-Header-messaages--> 
+<!--top-Header-menu-->
+<div id="user-nav" class="navbar navbar-inverse">
+  <ul class="nav">
+    <li class="" ><a title="" href="#"><i class="icon icon-user"></i> <span class="text">Profile</span></a></li>
+    <li class=""><a title="" href="./login"><i class="icon icon-share-alt"></i> <span class="text">Logout</span></a></li>
+  </ul>
+</div>
+<!--close-top-Header-menu-->
+
+<div id="sidebar"><a href="./index0" class="visible-phone"><i class="icon icon-home"></i> 首页</a>
+  <ul>
+    <li class="active"><a href="./index0"><i class="icon icon-home"></i> <span>首页</span></a></li>
+    <li> <a href="./group"><i class="icon icon-signal"></i> <span>级别操作</span></a> </li>  
+    <li><a href="./messagelist"><i class="icon icon-th"></i> <span>消息列表</span></a></li>         
+  </ul>
+</div>
+
+<div id="content">
+  <div id="content-header">
+    <div id="breadcrumb"> <a href="#" title="Go to Home" class="tip-bottom"><i class="icon-home"></i> 首页</a> <a href="#" class="current">级别操作</a> </div>
+  </div>
+  <div class="container-fluid">
+  
+    <div class="row-fluid">
+      <div class="span12">
+        <div class="widget-box">
+          <div class="widget-title"> <span class="icon"> <i class="icon-th"></i> </span>
+            <h5>你的好友列表</h5>
+          </div>
+          <div class="widget-content nopadding">
+            <table class="table table-bordered table-striped">
+              <thead>
+                <tr>
+                  <th>级别</th>
+                  <th>用户级别</th>
+                  <th>自动回复状态</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="odd gradeX">
+                  <td>级别0</td>
+                  <td>$list0</td>
+                  <td>$flag0</td>
+                </tr>
+				<tr class="odd gradeX">
+                  <td>级别1</td>
+                  <td>$list1</td>
+                  <td>$flag1</td>
+                </tr>
+				<tr class="odd gradeX">
+                  <td>级别2</td>
+                  <td>$list2</td>
+                  <td>$flag2</td>
+                </tr>
+               
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+	<div class="row-fluid">
+	<form class="form-horizontal" action=/group method=POST name="basic_validate" id="basic_validate" novalidate="novalidate">
+		<div class="span4">
+			<div class="widget-box">
+				<div class="widget-title">
+					<span class="icon">
+						<i class="icon-th-list"></i>
+					</span>
+					<h5>修改级别 </h5>
+				</div>
+				<div class="widget-content nopadding">
+                    <div class="control-group">
+						<label class="control-label">用户：</label>
+                    <div class="controls">
+						<input type=text name='username'>
+                    </div>
+                    </div>
+                    <div class="control-group">
+					<label class="control-label">修改级别为：</label>
+						<div class="controls">
+						<select name="choose_list">
+							<option value="0">0</option>
+							<option value="1">1</option>
+							<option value="2">2</option>
+						</select>           
+						<input type=submit value=确认修改 class="btn btn-success ">
+						</div>
+                    </div>                       
+				</div>
+			</div>
+		</div>
+		<div class="span4">
+			<div class="widget-box">
+				<div class="widget-title">
+					<span class="icon">
+						<i class="icon-th-list"></i>
+					</span>
+					<h5>自动回复</h5>
+				</div>
+				<div class="widget-content nopadding">
+                    <div class="control-group">
+						<label class="control-label">自动回复：</label>
+                    <div class="controls">
+						<input name="reply" type="checkbox" value="0"/>级别0
+						<input name="reply" type="checkbox" value="1"/>级别1
+						<input name="reply" type="checkbox" value="2"/>级别2
+                    </div>
+                    </div>
+                    <div class="control-group">
+						<div class="controls">
+						<input type=submit value=确认修改 class="btn btn-success ">               
+						</div>
+                    </div>                       
+				</div>
+			</div>
+		</div>
+		<div class="span4">
+			<div class="widget-box">
+				<div class="widget-title">
+					<span class="icon">
+						<i class="icon-th-list"></i>
+					</span>
+					<h5>群发消息 </h5>
+				</div>
+				<div class="widget-content nopadding">
+                    <div class="control-group">
+						<label class="control-label">发送对象：</label>
+                    <div class="controls">
+						<input name="level" type="checkbox" value="0"/>级别0
+						<input name="level" type="checkbox" value="1"/>级别1
+						<input name="level" type="checkbox" value="2"/>级别2
+                    </div>
+                    </div>
+                    <div class="control-group">
+						<label class="control-label">消息内容：</label>
+						<div class="controls">
+						<input type=text name='gpcontent'>
+						<input type=submit value=发送消息 class="btn btn-success ">                   
+						</div>
+                    </div>                       
+				</div>
+		</div>
+	</form>
+	</div>
+	
+				
+  </div>
+</div>   
+<div class="row-fluid">
+  <div id="footer" class="span12"> 2017 &copy; 中科大工程实践. </div>
+</div>
+<script src="js/jquery.min.js"></script> 
+<script src="js/jquery.ui.custom.js"></script> 
+<script src="js/bootstrap.min.js"></script> 
+<script src="js/jquery.uniform.js"></script> 
+<script src="js/select2.min.js"></script> 
+<script src="js/jquery.dataTables.min.js"></script> 
+<script src="js/maruti.js"></script> 
+<script src="js/maruti.tables.js"></script>
+</body>
+</html>
