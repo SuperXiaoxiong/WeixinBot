@@ -316,8 +316,11 @@ urls = (
     '/messagelist','messagelist',
     '/changelevel','changelevel',
     '/levelreply','levelreply',
-    '/api_get_message','api_get_messages',   
-    
+    '/api_get_message','api_get_messages',
+    '/api_change_level','api_change_level',
+    '/api_levelreply','api_levelreply',
+    '/api_groupsend','api_groupsend',
+    '/api_sendmsg','api_sendmsg', 
     )
 
 
@@ -677,6 +680,77 @@ class group:
         web.seeother('/group')        
 
 
+class api_groupsend:
+    '''
+        api功能：向特定级别发送消息
+        输入格式如：[0,1,2]，消息内容和wxkey
+        return json格式，
+        返回格式
+        {level:[0,1,2],
+        message:消息内容
+        }
+    '''
+    def POST(self):
+        api_wxkey = web.input().wxkey
+        x = web.input(level=[])
+        ckboxvalue = x.get('level')
+        gpMsg = web.input().gpcontent
+        
+        
+        sql_select_id = 'select * from example_users where wxkey=$wxkey'
+        idlists = db1.query(sql_select_id, vars={'wxkey':api_wxkey})
+        for i in idlists:
+            wxid = i.id
+            wxserialnum = i.serialnum
+             
+        
+        if gpMsg != '':
+            for i in ckboxvalue:
+                
+                sql_select_fri = 'select * from friend_list where wx_id=(select id from example_users where wxkey=$wxkey) and privilege=$i'
+                resultgplist = db1.query(sql_select_fri, vars={'wxkey':api_wxkey,'i':i})
+
+                webwx = wx_list[wxserialnum]
+                srcName = '我'
+                for x in resultgplist:
+                    dstName=x.markname
+                    sendMsg_result = webwx.sendMsg(dstName, gpMsg)
+                    if(sendMsg_result == 1):
+                        sql_insert = 'insert into messagelist (srcName,dstName,content,wx_id) values ($srcName,$dstName,$content,$wx_id);'
+                        db1.query(sql_insert, vars={'srcName':srcName,'dstName':dstName,'content':gpMsg,'wx_id':wxid})
+        
+        dict_msg = {
+            "level" : ckboxvalue,
+            "message":gpMsg,
+            }
+        return json.loads(json.dumps(dict_msg))
+
+
+class api_levelreply:
+    def POST(self):
+        '''
+        api功能：更改特定级别的自动回复状态
+        输入格式如：[0,1,2]和wxkey
+        return json格式，
+        返回格式[flag0,flag1,flag2]
+        '''
+        
+        api_wxkey = web.input().wxkey
+        x = web.input(reply=[])
+        replybox=x.get('reply')
+        
+        sql_select = 'select id from example_users where wxkey=$wxkey'
+        messagelists = db1.query(sql_select, vars={'wxkey':api_wxkey})
+        for i in messagelists:
+            wxid = i.id
+        #print replybox
+        for tempre in replybox:
+            #print tempre
+            replyflag[wxid][int(tempre)] = (replyflag[wxid][int(tempre)]+1)%2
+        
+        return json.loads(json.dumps(replyflag[wxid]))
+
+
 class levelreply:
     def POST(self):
         x = web.input(reply=[])
@@ -688,6 +762,41 @@ class levelreply:
         #print 'POST',replyflag
         web.seeother('/group')
 
+
+class api_change_level:
+    def POST(self):
+        '''
+        api功能：更改用户级别
+        
+        return json格式，
+        返回格式{
+        true或者false
+        }
+        '''
+        
+        api_wxkey = web.input().wxkey
+        username = web.input().username
+        listvalue = web.input().choose_list
+        
+        temp2 = db1.transaction()
+        try:
+            sql_select = 'select * from friend_list where  markname=$markname and wx_id=(select id from example_users where wxkey=$wxkey)'
+            resultfrilist = db1.query(sql_select, vars={'wxkey':api_wxkey,'markname':username})
+            #数据库查询
+            if len(resultfrilist) == 1:
+                #该用户已存在
+                #print username
+                sql_update = 'update table friend_list set privilege=$listvalue where markname=$markname and wx_id=(select id from example_users where wxkey=$wxkey)'
+                db1.query(sql_select, vars={'wxkey':api_wxkey,'markname':username,'listvalue':listvalue})
+                                
+        except :
+            temp2.rollback()
+            return json.loads(json.dumps(['false']))
+        else:
+            temp2.commit()
+        
+        return json.loads(json.dumps(['true']))
+        
 
 class changelevel:
     def POST(self):
@@ -753,6 +862,82 @@ class api_get_messages:
         print dict_msg
         msglist = json.dumps(dict_msg)
         return json.loads(msglist)           
+
+
+class api_sendmsg:
+    '''
+    api功能：发送消息
+    输入格式：｛'wxkey':wxkey,
+        'dstName':dstName,
+        'content':content,
+        'timeflag':timeflag,--------------[]或[]
+        'timerinfo':timerinfo-----------如22:13
+        ｝
+        
+    return json格式，
+    返回格式{
+        'srcName':srcName,
+        'dstName':dstName,
+        'content':content,
+        'timeMsg':timeMsg,
+        'timerinfo':timerinfo
+        }
+    '''
+    def POST(self):
+        api_wxkey = web.input().wxkey
+        
+        sql_select_id = 'select * from example_users where wxkey=$wxkey'
+        idlists = db1.query(sql_select_id, vars={'wxkey':api_wxkey})
+        for i in idlists:
+            wxid = i.id
+            wxserialnum = i.serialnum
+            
+        dstName = web.input().dstName
+        content = web.input().content
+        timerinfo = web.input().timerinfo
+        i = web.input(timeflag=[])
+        ckboxvalue = i.get('timeflag')
+        if len(ckboxvalue):
+            timeMsg = '1'
+        else:
+            timeMsg = '0'
+        webwx = wx_list[wxserialnum]
+        
+        srcName = '我'
+        
+        if timeMsg == '1':
+            '''
+            作用：定时发送特定人的消息
+            格式：输入定时:人名:时间:信息；时间写小时:分钟就行，默认当天发送
+            '''
+            now_time = time.time()
+            ltime = time.localtime(now_time)
+            year = int(ltime.tm_year)
+            mon = int(ltime.tm_mon)
+            mday = int(ltime.tm_mday)
+            hour = int(timerinfo.split(':')[0])
+            min = int(timerinfo.split(':')[1])
+            sec = 0
+            timeC = datetime.datetime(year,mon,mday,hour,min,sec)
+            timestamp = time.mktime(timeC.timetuple())
+            q_timer.put(timerJob(timestamp,dstName,content,wxserialnum))
+            print timestamp,dstName,content,wxserialnum
+            lastest_timer = int(timestamp)
+            
+        elif timeMsg == '0':
+            
+            sendMsg_result = webwx.sendMsg(dstName, content)
+            if(sendMsg_result == 1):
+                sql_insert = 'insert into messagelist (srcName,dstName,content,wx_id) values ($srcName,$dstName,$content,$wx_id);'
+                db1.query(sql_insert, vars={'srcName':srcName,'dstName':dstName,'content':content,'wx_id':wxid})
+        dict_msg = {
+            'srcName':srcName,
+            'dstName':dstName,
+            'content':content,
+            'timeMsg':timeMsg,
+            'timerinfo':timerinfo
+            }
+        return json.loads(json.dumps(dict_msg))
     
 class messagelist: 
     def GET(self):
