@@ -1103,14 +1103,14 @@ def init_db():
     print '执行'
 
     
-#if __name__ == "__main__":
+if __name__ == "__main__":
     '''
     定义服务器重启 :
     删除session,
     数据库将wxkey全置为default,serialnum置为-1,但联系人,对话,group保留
     '''
-init_session()
-init_db()
-#使用uwsgi采用接口
-application = app.wsgifunc() 
-#app.run()
+    init_session()
+    init_db()
+    #使用uwsgi采用接口
+    #application = app.wsgifunc() 
+    app.run()
