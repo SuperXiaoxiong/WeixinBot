@@ -4,9 +4,10 @@ Created on 2017年2月15日
 @author: superxiaoxiong
 '''
 
+
 '''
 TODO :
-:API
+:好友
 :页面整理及归并
 :说明文档
 '''
@@ -154,8 +155,7 @@ class WXLoginTh(wxlogin.WXLogin):
             dstName = self.getUserRemarkName(msg['raw_msg']['ToUserName'])
             content = msg['raw_msg']['Content']
             
-            # content = msg['raw_msg']['Content'].replace(
-            # '&lt;', '<').replace('&gt;', '>')
+            content = content.replace( '&lt;', '<').replace('&gt;', '>')
             message_id = msg['raw_msg']['MsgId']
            
             if msg['raw_msg']['FromUserName'][:2] == '@@':
@@ -189,14 +189,14 @@ class WXLoginTh(wxlogin.WXLogin):
             如果是自己发的消息recieved设为1
             反之为0
             '''
-            if srcName == self.User['UserName']:
-                sql = "insert into messagelist(srcName,dstName,content,wx_id,recieved) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "' ,+'1');"
-            else:
-                sql = "insert into messagelist(srcName,dstName,content,wx_id,recieved) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "', + '0');"    
-            python_cur.execute(sql)
-            #self.cur.close()
-            python_conn.commit()
-            print '插入成功！'
+        if srcName == self.User['UserName']:
+            sql = "insert into messagelist(srcName,dstName,content,wx_id,recieved) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "' ,+'1');"
+        else:
+            sql = "insert into messagelist(srcName,dstName,content,wx_id,recieved) values ('"+srcName+"','"+dstName+"','"+content+ "','"+ str(self.wx_id) + "', + '0');"    
+        python_cur.execute(sql)
+        #self.cur.close()
+        python_conn.commit()
+        print '插入成功！'
     
     
     def handleMsg(self, r):
@@ -217,93 +217,85 @@ class WXLoginTh(wxlogin.WXLogin):
             msgType = msg['MsgType']
             content = msg['Content']
             msgid = msg['MsgId']
-            if msg['FromUserName'][:2] == '@@':
-                # 接收到来自群的消息
-                if re.search(":<br/>", content, re.IGNORECASE):
-                    [people, content] = content.split(':<br/>')
-                    groupName = srcName
-                    srcName = self.getUserRemarkName(people)
-                    dstName = 'GROUP'
-                else:
-                    groupName = srcName
-                    srcName = 'SYSTEM'
-            elif msg['ToUserName'][:2] == '@@':
-                # 自己发给群的消息
-                groupName = dstName
-                dstName = 'GROUP'
-            
-            
-              
-            print msgType
-            if msgType == 1:
-                self.q.put(r)
-                print 'qsize' + str(self.q.qsize())
-                raw_msg = {'raw_msg': msg}
-                self._showMsg(raw_msg)
-                #self.autoReplyMode = True
-                if msg['FromUserName'][:2] != '@@':
-                    user_frilist = {
-                    'wx_id':str(self.wx_id),
-                    'markname':srcName
-                    }                                
-                    resultfrilist = db1.select('friend_list', what='privilege', where=web.db.sqlwhere(user_frilist) )
-                    for i in resultfrilist:
-                        if replyflag[self.wx_id][int(i.privilege)]==1:
-                            ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
-                            if self.webwxsendmsg(ans, msg['FromUserName']):
-                                db1.insert('messagelist',srcName='自动回复:',dstName=srcName,content=ans,wx_id=str(self.wx_id))
-                                print u'自动回复: ' + ans
-                            else:
-                                print u'自动回复失败'
-                '''
-                if groupName == None:
-                    if self.autoReplyMode:
-                        ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
-                        if self.webwxsendmsg(ans, msg['FromUserName']):
-                            db1.insert('messagelist',srcName='自动回复:',dstName=srcName,content=ans,wx_id=str(self.wx_id))
-                            print u'自动回复: ' + ans
-                        else:
-                            print u'自动回复失败'
-                 '''           
-                '''
-                if content[0:4] == u'cmd:':
-                    cmd = content[4:]
-                    #self.pipe.stdin.write(cmd)
-                    #self.pipe.stdin.flush()
-                    #self.cmder = msg['FromUserName']
-                    
-                    '''
-            elif msgType == 37:
-                '''好友验证消息'''
-                print u'收到消息'
-                url = '%s/webwxverifyuser?r=%s&pass_ticket=%s' % (
-                    self.base_uri , int(time.time()), self.pass_ticket)
-                data = {
-                    'BaseRequest': self.BaseRequest,
-                    'Opcode': msg['Status'], 
-                    'VerifyUserListSize': 1,
-                    'VerifyUserList': [{
-                        'Value': msg['RecommendInfo']['UserName'],
-                        'VerifyUserTicket': '', }],
-                    'VerifyContent': msg['Ticket'],
-                    'SceneListCount': 1,
-                    'SceneList': [33], 
-                    'skey': self.skey }
-                
-                self._post(url, data, True)
-                print url
-                print data
-                self.webwxgetcontact()
-                
-                
-                
-            elif msgType == 10002:
-                raw_msg = {'raw_msg': msg, 'message': u'%s 撤回了一条消息' % srcName}
-                self._showMsg(raw_msg)
+            if content.find('/cgi-bin/mmwebwx-bin/webwxgetpubliclinkimg') != -1:
+                #收到群消息
+                pass
             else:
-                raw_msg = {
-                    'raw_msg': msg, 'message': u'[*] 该消息类型为: %d，可能是表情，图片, 链接或红包' % msg['MsgType']}
-                #self._showMsg(raw_msg)       
+                content = content.replace( '&lt;', '<').replace('&gt;', '>')
+                if msg['FromUserName'][:2] == '@@':
+                    # 接收到来自群的消息
+                    if re.search(":<br/>", content, re.IGNORECASE):
+                        [people, content] = content.split(':<br/>')
+                        groupName = srcName
+                        srcName = self.getUserRemarkName(people)
+                        dstName = 'GROUP'
+                    else:
+                        groupName = srcName
+                        srcName = 'SYSTEM'
+                elif msg['ToUserName'][:2] == '@@':
+                    # 自己发给群的消息
+                    groupName = dstName
+                    dstName = 'GROUP'
+                
+                
+                  
+                print msgType
+                if msgType == 1:
+                    self.q.put(r)
+                    print 'qsize' + str(self.q.qsize())
+                    raw_msg = {'raw_msg': msg}
+                    self._showMsg(raw_msg)
+                    #self.autoReplyMode = True
+                    if msg['FromUserName'][:2] != '@@':
+                        user_frilist = {
+                        'wx_id':str(self.wx_id),
+                        'markname':srcName
+                        }                                
+                        resultfrilist = db1.select('friend_list', what='privilege', where=web.db.sqlwhere(user_frilist) )
+                        for i in resultfrilist:
+                            if replyflag[self.wx_id][int(i.privilege)]==1:
+                                ans = self._xiaodoubi(content) + u'\n[微信机器人自动回复]'
+                                if self.webwxsendmsg(ans, msg['FromUserName']):
+                                    db1.insert('messagelist',srcName='自动回复:',dstName=srcName,content=ans,wx_id=str(self.wx_id))
+                                    print u'自动回复: ' + ans
+                                else:
+                                    print u'自动回复失败'
+                    
+                        
+                        
+                elif msgType == 37:
+                    '''好友验证消息'''
+                    print u'收到消息'
+                    url = '%s/webwxverifyuser?r=%s&pass_ticket=%s' % (
+                        self.base_uri , int(time.time()), self.pass_ticket)
+                    data = {
+                        'BaseRequest': self.BaseRequest,
+                        'Opcode': msg['Status'], 
+                        'VerifyUserListSize': 1,
+                        'VerifyUserList': [{
+                            'Value': msg['RecommendInfo']['UserName'],
+                            'VerifyUserTicket': '', }],
+                        'VerifyContent': msg['Ticket'],
+                        'SceneListCount': 1,
+                        'SceneList': [33], 
+                        'skey': self.skey }
+                    
+                    self._post(url, data, True)
+                    print url
+                    print data
+                    
+                    self.webwxgetcontact()
+                    
+                    
+                    
+                    
+                elif msgType == 10002:
+                    raw_msg = {'raw_msg': msg, 'message': u'%s 撤回了一条消息' % srcName}
+                    self._showMsg(raw_msg)
+                else:
+                    raw_msg = {
+                        'raw_msg': msg, 'message': u'[*] 该消息类型为: %d，可能是表情，图片, 链接或红包' % msg['MsgType']}
+                    #self._showMsg(raw_msg)       
 
             
 urls = (
@@ -316,6 +308,7 @@ urls = (
     '/messagelist','messagelist',
     '/changelevel','changelevel',
     '/levelreply','levelreply',
+    '/friend','op_friend',
     '/api_get_message','api_get_messages',
     '/api_change_level','api_change_level',
     '/api_levelreply','api_levelreply',
@@ -345,10 +338,12 @@ def random_str(randomlength=25):
 
     
 def logged():
+    
     if session.login == 1:
         return True
     else:
         return False
+    
 
 
 def create_render(privilege):  
@@ -450,20 +445,27 @@ class index:
                         'wx_id':session.user.id
                     }
                     frienduserlist = webwx.ContactList
+                    frienduser_full_name_list = []
+                    
                     sql_friendlist =[]
-
+        
                     tempsqllist = db1.select('friend_list',what='markname',where=web.db.sqlwhere(user_frilist))
                     for x in tempsqllist:
                         sql_friendlist.append(x.markname)
                         
-
+        
                     for tempuser in frienduserlist:
                         '''
                         #更新好友列表
                         '''
-                        temp2 = db1.transaction()
-
-                        tempmark=tempuser['RemarkName']
+                        temp2 = db1.transaction()       
+                        if tempuser['RemarkName'] is None:
+                            tempmark = tempuser['NickName']
+                            frienduser_full_name_list.append(tempuser['NickName'])
+                        else:
+                            tempmark = tempuser['RemarkName']
+                            frienduser_full_name_list.append(tempuser['RemarkName'])
+                            
                         try:
                             if tempmark not in sql_friendlist:
                                 db1.insert('friend_list',markname=tempmark,wx_id=session.user.id)
@@ -472,8 +474,17 @@ class index:
                             temp2.rollback()
                         else:
                             temp2.commit()
-                    
-                    
+                        
+                            
+                    sql_friendlist =[]
+                    tempsqllist = db1.select('friend_list',what='markname',where=web.db.sqlwhere(user_frilist))
+                    for friend in tempsqllist:
+                        if friend.markname  not in frienduser_full_name_list:
+                            delete_list = {
+                                'markname':friend.markname,
+                                }
+                            db1.delete('friend_list',where=web.db.sqlwhere(delete_list))
+                            
                     session.user.wxkey = random_str()
                     db1.update('example_users', web.db.sqlwhere({'user':session.user.user}), serialnum=session.user.serialnum, wxkey=session.user.wxkey)
                     return "%s" % (render.index0(session.user.user, 'none', status=session.user.wxkey))
@@ -499,7 +510,68 @@ class index:
             pass
         
         
-        
+class op_friend:
+    def GET(self):
+        if logged():
+            '''
+                    获取用户好友列表
+            '''
+            serialnum = session.user.serialnum
+            webwx = wx_list[serialnum]
+            user_frilist = {
+                'wx_id':session.user.id
+            }
+            webwx.webwxgetcontact()
+            frienduserlist = webwx.ContactList
+            frienduser_full_name_list = []
+            
+            sql_friendlist =[]
+
+            tempsqllist = db1.select('friend_list',what='markname',where=web.db.sqlwhere(user_frilist))
+            for x in tempsqllist:
+                sql_friendlist.append(x.markname)
+                
+
+            for tempuser in frienduserlist:
+                '''
+                #更新好友列表
+                '''
+                temp2 = db1.transaction()       
+                if tempuser['RemarkName'] is None:
+                    tempmark = tempuser['NickName']
+                    frienduser_full_name_list.append(tempuser['NickName'])
+                else:
+                    tempmark = tempuser['RemarkName']
+                    frienduser_full_name_list.append(tempuser['RemarkName'])
+                    
+                try:
+                    if tempmark not in sql_friendlist:
+                        db1.insert('friend_list',markname=tempmark,wx_id=session.user.id)
+                        sql_friendlist.append(tempmark)
+                except :
+                    temp2.rollback()
+                else:
+                    temp2.commit()
+                
+                    
+            sql_friendlist =[]
+            tempsqllist = db1.select('friend_list',what='markname',where=web.db.sqlwhere(user_frilist))
+            for friend in tempsqllist:
+                if friend.markname  not in frienduser_full_name_list:
+                    delete_list = {
+                        'markname':friend.markname,
+                        }
+                    db1.delete('friend_list',where=web.db.sqlwhere(delete_list))
+                
+                
+               
+            
+            web.seeother('/group') 
+        else:
+            render = create_render(2)
+            return "%s" % (render.login())    
+            
+                    
 class login:
     
     def GET(self):
@@ -509,9 +581,10 @@ class login:
         '''
         if logged():
             render = create_render(session.privilege)
+            print 'login '  + str(session.privilege)
             return "%s" % (render.index())
         else:
-            render = create_render(-1)
+            render = create_render(2)
             return "%s" % (render.login())
     
     def POST(self):
@@ -560,8 +633,7 @@ class logout:
         if logged():
             session.login = 0
             session.kill()
-            render = create_render(2)
-            return "%s" % (render.login())
+            web.seeother('/login')
         else:
             render = create_render(2)
             return "%s" % (render.login())
@@ -611,7 +683,8 @@ class regist:
                 render = create_render(2)
                 return "%s" % (render.login())
             
-            
+
+                       
 class group: 
     #replyflag=[0,0,0]
     def GET(self):
@@ -656,29 +729,31 @@ class group:
         else:
             render = create_render(2)
             return "%s" % (render.login())
-    def POST(self):
-        		
-        i = web.input(level=[])
-        ckboxvalue = i.get('level')
-        gpMsg = web.input().gpcontent
-        
-        if gpMsg != '':
-            for i in ckboxvalue:
-                user_gplist = {
-					'wx_id':session.user.id,
-                    'privilege':i
-                }
-
-                resultgplist = db1.select('friend_list',where=web.db.sqlwhere(user_gplist))
-                serialnum = session.user.serialnum
-                webwx = wx_list[serialnum]
-                srcName = '我'
-                for x in resultgplist:
-                    sendMsg_result = webwx.sendMsg(x.markname, gpMsg)
-                    if(sendMsg_result == 1):
-                        db1.insert('messagelist',srcName=srcName,dstName=x.markname,content=gpMsg,wx_id=session.user.id)
-        web.seeother('/group')        
-
+    def POST(self):  
+        if logged():      		
+            i = web.input(level=[])
+            ckboxvalue = i.get('level')
+            gpMsg = web.input().gpcontent
+            
+            if gpMsg != '':
+                for i in ckboxvalue:
+                    user_gplist = {
+    					'wx_id':session.user.id,
+                        'privilege':i
+                    }
+    
+                    resultgplist = db1.select('friend_list',where=web.db.sqlwhere(user_gplist))
+                    serialnum = session.user.serialnum
+                    webwx = wx_list[serialnum]
+                    srcName = '我'
+                    for x in resultgplist:
+                        sendMsg_result = webwx.sendMsg(x.markname, gpMsg)
+                        if(sendMsg_result == 1):
+                            db1.insert('messagelist',srcName=srcName,dstName=x.markname,content=gpMsg,wx_id=session.user.id)
+            web.seeother('/group')        
+        else:
+            render = create_render(2)
+            return "%s" % (render.login())
 
 class api_groupsend:
     '''
@@ -963,50 +1038,53 @@ class messagelist:
             return "%s" % (render.login())
     
     def POST(self):
-
-        dstName = web.input().dstName
-        content = web.input().content
-        i = web.input(timeflag=[])
-        ckboxvalue = i.get('timeflag')
-        if len(ckboxvalue):
-            timeMsg = '1'
+        if logged():
+            dstName = web.input().dstName
+            content = web.input().content
+            i = web.input(timeflag=[])
+            ckboxvalue = i.get('timeflag')
+            if len(ckboxvalue):
+                timeMsg = '1'
+            else:
+                timeMsg = '0'
+                
+            serialnum = session.user.serialnum
+            webwx = wx_list[serialnum]
+                          
+            if timeMsg == '1':
+            #print 'sdajak'
+                '''
+                作用：定时发送特定人的消息
+                格式：输入定时:人名:时间:信息；时间写小时:分钟就行，默认当天发送
+                '''
+                timerinfo = web.input().timeinfo
+                now_time = time.time()
+                ltime = time.localtime(now_time)
+                year = int(ltime.tm_year)
+                mon = int(ltime.tm_mon)
+                mday = int(ltime.tm_mday)
+                hour = int(timerinfo.split(':')[0])
+                min = int(timerinfo.split(':')[1])
+                sec = 0
+                timeC = datetime.datetime(year,mon,mday,hour,min,sec)
+                timestamp = time.mktime(timeC.timetuple())
+                q_timer.put(timerJob(timestamp,dstName,content,session.user.serialnum))
+                print timestamp,dstName,content,session.user.serialnum
+                lastest_timer = int(timestamp)
+            
+            elif timeMsg == '0':
+        #print dstName
+                srcName = '我'
+                sendMsg_result = webwx.sendMsg(dstName, content)
+                if(sendMsg_result == 1):
+                    db1.insert('messagelist',srcName=srcName,dstName=dstName,content=content,wx_id=session.user.id)
+                
+            
+            
+            web.seeother('/messagelist')      
         else:
-            timeMsg = '0'
-            
-        serialnum = session.user.serialnum
-        webwx = wx_list[serialnum]
-                      
-        if timeMsg == '1':
-        #print 'sdajak'
-            '''
-            作用：定时发送特定人的消息
-            格式：输入定时:人名:时间:信息；时间写小时:分钟就行，默认当天发送
-            '''
-            timerinfo = web.input().timeinfo
-            now_time = time.time()
-            ltime = time.localtime(now_time)
-            year = int(ltime.tm_year)
-            mon = int(ltime.tm_mon)
-            mday = int(ltime.tm_mday)
-            hour = int(timerinfo.split(':')[0])
-            min = int(timerinfo.split(':')[1])
-            sec = 0
-            timeC = datetime.datetime(year,mon,mday,hour,min,sec)
-            timestamp = time.mktime(timeC.timetuple())
-            q_timer.put(timerJob(timestamp,dstName,content,session.user.serialnum))
-            print timestamp,dstName,content,session.user.serialnum
-            lastest_timer = int(timestamp)
-        
-        elif timeMsg == '0':
-    #print dstName
-            srcName = '我'
-            sendMsg_result = webwx.sendMsg(dstName, content)
-            if(sendMsg_result == 1):
-                db1.insert('messagelist',srcName=srcName,dstName=dstName,content=content,wx_id=session.user.id)
-            
-        
-        
-        web.seeother('/messagelist')         
+            render = create_render(2)
+            return "%s" % (render.login()) 
 
 
 class timerJob(object):
@@ -1065,8 +1143,9 @@ time_work = threading.Thread(target=process_timejob,args=(q_timer,))
 time_work.start()
 
 
-#--------数据库添加-------
+
 '''
+#--------数据库添加-------
 使用python原生语句操作mysql数据库
 '''
 python_conn = MySQLdb.connect(host='localhost',port=3306,user='root',passwd = 'root',db='webuser')
@@ -1076,23 +1155,27 @@ python_cur.execute('SET NAMES utf8;')
 python_cur.execute('SET CHARACTER SET utf8;')
 python_cur.execute('SET character_set_connection=utf8;')
 print '连接数据库成功！'
-#----------------------
-        
-        
+
+
+
 
 if web.config.get('_session') is None:
     session = web.session.Session(app, web.session.DiskStore('sessions'), initializer={'login':0})
     web.config._session = session
+    print 1
 else:
+    print  2
     session = web.config._session
-
 
 def init_session():
     cur_pwd = os.getcwd()
     cur_path = os.path.join(cur_pwd,'sessions')
     list_files = os.listdir(cur_path)
     for _file in list_files:
-        os.remove(os.path.join(cur_path,_file))
+        os.remove(os.path.join(cur_path,_file))   
+
+
+
     
 
 def init_db():
