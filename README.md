@@ -1,4 +1,4 @@
-### 微信机器人后台管理操作指南 ###
+﻿### 微信机器人后台管理操作指南 ###
 
 进入微信机器人管理后台，首先是登录界面：  
 
@@ -41,3 +41,11 @@
 
 ### 发送定时消息 ###
 操作：填上收信人和消息内容，勾选定时选项，填写时间，格式：小时：分钟，后台会自动添加今天的年，月，日。点击发送后刷新页面，显示最新的消息记录。
+
+### 类似项目链接 ###
+
+* [查看被删的微信好友](https://github.com/0x5e/wechat-deleted-friends)
+* [A complete and graceful API for Wechat. 微信个人号接口、微信机器人及命令行微信，三十行即可自定义个人号机器人。 (http://itchat.readthedocs.io]https://github.com/littlecodersh/ItChat)
+* [网页版微信API，包含终端版微信及微信机器人](https://github.com/Urinx/WeixinBot)
+* [python写的web微信“智能“群发程序](https://github.com/leorunwind/py2webwx)
+* [Python网页微信API](https://github.com/leorunwind/py2webwx)
