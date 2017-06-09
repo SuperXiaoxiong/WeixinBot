@@ -250,7 +250,21 @@ class WXLoginTh(wxlogin.WXLogin):
                         user_frilist = {
                         'wx_id':str(self.wx_id),
                         'markname':srcName
-                        }                                
+                        } 
+                        
+                        
+                        '''
+                        接收查询命令，读取日志文件
+                        '''
+                        #content = msg['Content']
+                        #print "jinlaile"
+                        print content
+                        if(content[0:3] == 'cmd'):
+                            cmd_read = content[4:].split(' ')
+                            #print cmd_read
+                            if len(cmd_read)== 4:
+                                self.read_log(msg['FromUserName'],cmd_read[0],cmd_read[1],cmd_read[2],cmd_read[3])
+                                                       
                         resultfrilist = db1.select('friend_list', what='privilege', where=web.db.sqlwhere(user_frilist) )
                         for i in resultfrilist:
                             if replyflag[self.wx_id][int(i.privilege)]==1:
@@ -297,6 +311,26 @@ class WXLoginTh(wxlogin.WXLogin):
                         'raw_msg': msg, 'message': u'[*] 该消息类型为: %d，可能是表情，图片, 链接或红包' % msg['MsgType']}
                     #self._showMsg(raw_msg)       
 
+    def read_log(self,FromUserName,machine_num,command,log_timedate,log_time):
+        
+        path = './'+machine_num+'/'+command+log_timedate+'.txt'
+        print path
+        temp=0
+        if os.path.exists(path):
+            logfile = open(path,"r")
+            line = logfile.readline()
+            print line
+            while line:
+                if line.find(log_time)!=-1:
+                    while line and temp <5:
+                        self.webwxsendmsg(line, FromUserName)
+                        temp +=1
+                        line = logfile.readline()
+                    break
+                line = logfile.readline()
+            logfile.close()
+        else:
+            self.webwxsendmsg('no record!', FromUserName)   
             
 urls = (
     '/(.*)/','redirect',
@@ -314,6 +348,7 @@ urls = (
     '/api_levelreply','api_levelreply',
     '/api_groupsend','api_groupsend',
     '/api_sendmsg','api_sendmsg', 
+    '/api_monitor','api_monitor',
     )
 
 
@@ -1197,3 +1232,93 @@ if __name__ == "__main__":
     #使用uwsgi采用接口
     #application = app.wsgifunc() 
     app.run()
+
+
+class api_monitor:
+    def POST(self):
+        api_wxkey = web.input().wxkey
+        machine_num= web.input().machine_num
+        x = web.input(level=[])
+        ckboxvalue = x.get('level')
+        cpu_state = json.loads(web.input().cpu_state)
+        mem_state = json.loads(web.input().mem_state)
+        proc_state = json.loads(web.input().proc_state)
+#         print proc_state
+#         print type(gpMsg)
+#         print gpMsg
+        
+        path = machine_num
+        if not os.path.exists(path):
+            os.mkdir(path)
+            
+        else:
+            print '目录已存在'
+        
+        time_today = time.strftime('%Y-%m-%d',time.localtime(time.time()))
+        time_log = time.strftime('%Y-%m-%d %H:%M',time.localtime(time.time()))
+        #time_i = datetime.datetime.now()
+        #time_today = str(time_i.year)+str(time_i.month)+str(time_i.day)
+        cpulogfile = open("./"+ path +"/cpu"+ time_today +".txt",'a')
+        cpu_string = time_log + u': cpu占用比: '+ str(cpu_state["cpu_percent_sum"])\
+        + u'%, 用户态cpu时间比: '+ str(cpu_state["cpu_user_sum"])\
+        + u'ns, nice用户态cpu时间比: '+ str(cpu_state["cpu_nice_sum"])\
+        + u'ns, 系统态cpu时间比: '+ str(cpu_state["cpu_system_sum"])\
+        + u'ns, 空闲的cpu时间比: '+ str(cpu_state["cpu_idle_sum"])\
+        + u'ns, cpu等待磁盘写入时间: '+ str(cpu_state["cpu_iowait_sum"])\
+        + u'ns, 硬中断消耗时间: '+ str(cpu_state["cpu_irq_sum"])\
+        + u'ns, 软中断消耗时间: '+ str(cpu_state["cpu_softirq_sum"])\
+        + u'ns, 虚拟机偷取时间: '+ str(cpu_state["cpu_steal_sum"]) + '\n'
+        cpulogfile.write(cpu_string)
+        cpulogfile.close()
+        
+        memlogfile = open("./"+ path +"/mem"+ time_today +".txt",'a')
+        mem_string = time_log + u': 内存占比: '+ str(mem_state["mem_percent"])\
+        + u'%, 内存总量: '+ str(mem_state["mem_total"])\
+        + u'M, 已用内存: '+ str(mem_state["mem_used"])\
+        + u'M, 剩余内存: '+ str(mem_state["mem_free"])+ u'M\n'
+        memlogfile.write(mem_string)
+        memlogfile.close()
+        
+        proclogfile = open("./"+ path +"/proc"+ time_today +".txt",'a')
+        for i in range(1,6):
+            proc_name = "proc"+str(i)
+            proc_string = time_log + u': 进程名称: '+ str(proc_state[proc_name]["name"])\
+            + u' 占用内存: '+ str(proc_state[proc_name]["mem"])\
+            + u'%, 占用cpu: '+ str(proc_state[proc_name]["cpu"])+ '\n'
+            proclogfile.write(proc_string)
+        proclogfile.close()
+        
+        
+        sql_select_id = 'select * from example_users where wxkey=$wxkey'
+        idlists = db1.query(sql_select_id, vars={'wxkey':api_wxkey})
+        for i in idlists:
+            wxid = i.id
+            wxserialnum = i.serialnum
+             
+        
+        if cpu_state["cpu_percent_sum"] > 25 or mem_state["mem_percent"] > 65:
+            gpmsgcontent = '机器　'+ machine_num +'　状态异常: '
+            if cpu_state["cpu_percent_sum"] > 25:
+                gpmsgcontent +='cpu: '+str(cpu_state["cpu_percent_sum"])+'; '
+            if mem_state["mem_percent"] > 65:
+                gpmsgcontent +='mem: '+str(mem_state["mem_percent"])+'; '
+                
+            for i in ckboxvalue:
+                sql_select_fri = 'select * from friend_list where wx_id=(select id from example_users where wxkey=$wxkey) and privilege=$i'
+                resultgplist = db1.query(sql_select_fri, vars={'wxkey':api_wxkey,'i':i})
+
+                webwx = wx_list[wxserialnum]
+                srcName = '我'
+                for x in resultgplist:
+                    dstName=x.markname
+                    sendMsg_result = webwx.sendMsg(dstName, gpmsgcontent)
+                    if(sendMsg_result == 1):
+                        sql_insert = 'insert into messagelist (srcName,dstName,content,wx_id) values ($srcName,$dstName,$content,$wx_id);'
+                        db1.query(sql_insert, vars={'srcName':srcName,'dstName':dstName,'content':"over 80",'wx_id':wxid})
+        
+        dict_msg = {
+            "level" : ckboxvalue,
+            "mem_state":mem_state,
+            "cpu_state":cpu_state,
+            }
+        return json.loads(json.dumps(dict_msg))
